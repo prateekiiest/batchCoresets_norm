@@ -116,6 +116,73 @@ def numeric_scores(obj, prefix=""):
             found.extend(numeric_scores(v, prefix + "[" + str(i) + "]"))
     return found
 
+def stylometric_features(text):
+    """Descriptive writing-style features; not an AI-authorship classifier."""
+    words = re.findall(r"\b[\w'-]+\b", text.lower())
+    sentences = [x.strip() for x in re.split(r"(?<=[.!?])\s+", text) if x.strip()]
+    sent_lengths = [len(re.findall(r"\b[\w'-]+\b", x)) for x in sentences]
+    word_lengths = [len(w) for w in words]
+    n_words = len(words)
+    unique = len(set(words))
+    punctuation = sum(c in ".,;:!?—-()[]{}\"'" for c in text)
+    mean_sent = sum(sent_lengths) / len(sent_lengths) if sent_lengths else 0
+    return {
+        "word_count": n_words,
+        "sentence_count": len(sentences),
+        "mean_sentence_length_words": round(mean_sent, 3),
+        "sentence_length_std_words": round((sum((x - mean_sent) ** 2 for x in sent_lengths) / len(sent_lengths)) ** 0.5, 3) if sent_lengths else 0,
+        "mean_word_length_chars": round(sum(word_lengths) / n_words, 3) if n_words else 0,
+        "type_token_ratio": round(unique / n_words, 4) if n_words else 0,
+        "punctuation_per_100_words": round(100 * punctuation / n_words, 3) if n_words else 0,
+        "comma_per_100_words": round(100 * text.count("," ) / n_words, 3) if n_words else 0,
+        "em_dash_per_100_words": round(100 * text.count("—") / n_words, 3) if n_words else 0,
+        "semicolon_per_100_words": round(100 * text.count(";") / n_words, 3) if n_words else 0,
+        "uppercase_ratio": round(sum(c.isupper() for c in text) / max(1, sum(c.isalpha() for c in text)), 4),
+        "digit_ratio": round(sum(c.isdigit() for c in text) / max(1, len(text)), 4),
+    }
+
+def style_report(snippets):
+    return {"detector": "stylometric-profile", "status": "ok" if snippets else "skipped",
+        "description": "Descriptive style features only; no AI/human classification is performed.",
+        "files": [{"path": path, "features": stylometric_features(text)} for path, text in snippets]}
+
+def academic_text_detector(snippets):
+    """Optional open academic-text model; report raw labels without treating scores as authorship probabilities."""
+    out = {"detector": "Lukkinen/ai-text-detector", "model": "Lukkinen/ai-text-detector",
+           "status": "skipped", "files": []}
+    if not snippets:
+        out["detail"] = "No changed prose met the minimum length threshold."
+        return out
+    try:
+        from transformers import pipeline
+        clf = pipeline("text-classification", model="Lukkinen/ai-text-detector", device=-1)
+        out["status"] = "ok"
+        for path, text in snippets:
+            paragraphs = [p.strip() for p in re.split(r"\n\s*\n", text) if count_words(p) >= 50]
+            if not paragraphs:
+                paragraphs = [text]
+            results = []
+            for para in paragraphs[:30]:
+                try:
+                    pred = clf(para[:4000], truncation=True, max_length=512)
+                    if pred and isinstance(pred[0], list):
+                        pred = pred[0]
+                    if pred:
+                        results.append({"label": pred[0].get("label"),
+                                        "score": round(float(pred[0].get("score", 0)), 5),
+                                        "words": count_words(para)})
+                except Exception as e:
+                    results.append({"error": str(e)[:250], "words": count_words(para)})
+            out["files"].append({"path": path, "word_count": count_words(text),
+                "paragraphs_scored": len(results), "paragraph_results": results,
+                "interpretation": "Raw model output only; score is not a calibrated probability of AI authorship."})
+        if any("error" in p for f in out["files"] for p in f.get("paragraph_results", [])):
+            out["status"] = "partial"
+    except Exception as e:
+        out["status"] = "error"
+        out["detail"] = str(e)[:700]
+    return out
+
 def houtini(snippets):
     out = {"detector": "houtini-ai-detect", "status": "skipped", "files": []}
     check = subprocess.run(["bash", "-lc", "command -v ai-detect"], capture_output=True, text=True)
@@ -204,7 +271,7 @@ def main():
         {"detector": "coderbuds-ai-detector", "status": "ok" if not any(f.get("status") == "error" for f in findings) else "error",
          "findings": [f for f in findings if not f.get("status")] ,
          "errors": [f for f in findings if f.get("status") == "error"]},
-        houtini(snippets), pangram(snippets)
+        style_report(snippets), academic_text_detector(snippets), houtini(snippets), pangram(snippets)
     ]
     report = {"schema_version": 1, "repository": os.environ.get("GITHUB_REPOSITORY", ""),
         "event": os.environ.get("GITHUB_EVENT_NAME", ""), "base": base or None, "head": head,
@@ -231,8 +298,14 @@ def main():
         for f in d.get("findings", [])[:25]:
             lines.append("- **Rule match:** " + str(f.get("tool", "rule")) + " — " + str(f.get("indicator", f.get("category", "match"))))
         for f in d.get("files", []):
+            if f.get("features") is not None:
+                lines.append("- **" + f.get("path", "?") + "**: descriptive style profile available in JSON.")
+                continue
             score = f.get("model_ai_score", f.get("score_pred", "see JSON report"))
             lines.append("- **" + f.get("path", "?") + "** (" + str(f.get("word_count", "?")) + " words): score " + str(score))
+            if f.get("paragraph_results") is not None:
+                labels = [str(p.get("label", "error")) for p in f["paragraph_results"]]
+                lines.append("  - Paragraph-level raw labels: " + ", ".join(labels[:12]))
             if f.get("label") is not None: lines.append("  - Label: " + str(f["label"]))
             if f.get("bucket_pred") is not None: lines.append("  - Predicted bucket: " + str(f["bucket_pred"]))
             if f.get("error"): lines.append("  - Error: " + str(f["error"]).replace("\n", " "))
@@ -240,6 +313,8 @@ def main():
     lines.extend(["## Limitations", "",
         "- A skipped detector may mean no qualifying changed prose was found, not necessarily a setup failure.",
         "- Coderbuds detects explicit attribution markers; it does not detect all AI-assisted content.",
+        "- The stylometric profile reports descriptive features only; it does not classify authorship.",
+        "- Lukkinen model labels/scores are not calibrated probabilities of AI authorship; the model targets English CS/engineering academic prose and can produce false positives.",
         "- EditLens scores are not probabilities of AI authorship.",
         "- Do not use this report as the sole basis for academic-integrity or disciplinary decisions.", ""])
     Path(a.markdown_report).write_text("\n".join(lines), encoding="utf-8")
