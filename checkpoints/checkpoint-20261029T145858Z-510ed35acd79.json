@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "label": "initial-research-direction",
+  "created_at_utc": "2026-10-29T14:58:58.460037+00:00",
+  "git_commit": "75e24449aac03d1bfb137fedf5bfa489079da9cb",
+  "working_tree_status_at_creation": [],
+  "tracked_file_sha256": {
+    ".github/workflows/validate.yml": "bcffee2b2ebb0389598cb5a2367b10c50b0a243a66e031344e2b6f0991af6a8f",
+    ".gitignore": "53f5eb26688d39c4bc97c69bc31f66a59614b305ebb2b7b96ece15348e35830e",
+    ".vscode/extensions.json": "df6e219a3bb8c9b1546c2078829d7dc75e9e440ab0372019ec50bc4c0a589c0e",
+    ".vscode/settings.json": "c8ae0e08427f5d081a356e1cc8cde68bea58b1ea1b538af411d8303c9f011c60",
+    "README.md": "0330c353861f75a3b037e609f6cb1b8df23bbda107504c840a2c625ee8ca8029",
+    "checkpoints/.gitkeep": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "experiments/README.md": "6d2308cc71d8b349ea9a4c4b4f523dc96eae53da83a68bc8b3f4a08a67d89b95",
+    "experiments/experiment-template.json": "37f29e24197e2287c2d429b439302eaf126b96e2a45cbbb5f8d90fa41d84ada0",
+    "paper/README.md": "c3ab7949744a7a2f1df5efa6edfa16cf124797bb58195b4f8238f309a094df82",
+    "research-log/DAILY_LOG.md": "0a26fa067e0af254da37033e632dab9c26c2522955054fc69ea1e4b6a6368d23",
+    "research-log/DECISIONS.md": "bee8175f3be3e40618b6769b58f79e63d6dff58e072fa7cfb4b2ccb129c84cc1",
+    "research-log/IDEA_LOG.md": "ba91e083c961c842e9d609c734ab92493fa62517b1b9f0b1e8911cd7f092a75b",
+    "scripts/checkpoint.py": "7b2fe6744fdc1c6032f62c73aeb20677d3b6f844293bdcc66c6a562d0d8b9216",
+    "scripts/verify_checkpoint.py": "1ee48696f26241e5b46e86d536f00a211499fa23bb1e51f17def6734a1170f58"
+  },
+  "note": "Local checkpoint timestamp is not an independent trusted timestamp."
+}

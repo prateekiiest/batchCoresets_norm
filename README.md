@@ -1,77 +1,131 @@
-# ICML Research Evidence Starter
 
-A paper-specific workspace template for keeping a contemporaneous, reviewable record of research development.
 
-**Scope:** this template helps preserve dated notes, Git history, experiment provenance, and checkpoint hashes. It does not prove that AI was never used, and it must not be presented as an AI-free certificate.
+## Automatic Research Activity Logging
 
-## 1. Start a new private GitHub repository
+This project includes a lightweight file watcher that records changes to your research drafts while you work in VS Code.
 
-1. On GitHub, create a **private** repository for the paper, for example `icml-research-record`.
-2. Do not add a README or license on GitHub if you plan to push this template as the initial commit.
-3. Download/unzip this template, open its folder in VS Code, then run:
+### What it records
 
-```bash
-git init
-git add .
-git commit -m "Initialize research record"
-git branch -M main
-git remote add origin https://github.com/YOUR-USERNAME/YOUR-REPO.git
-git push -u origin main
+When running, `scripts/watch_draft.py` monitors saved files in the `paper/` directory with these extensions:
+
+- `.tex`, `.md`, `.bib`
+- `.py`, `.json`, `.csv`, `.txt`
+
+When it detects a change, it appends an entry to `research-log/AUTO_ACTIVITY.jsonl` containing:
+
+- UTC timestamp of the detected change
+- File path
+- SHA-256 hash of the saved file
+- File size
+- Git commit currently checked out
+- Type of recorded event
+
+It also appends a brief entry to `research-log/DAILY_LOG.md`.
+
+To record an explicit research decision in a monitored file, use a line such as:
+
+```text
+DECISION: Evaluate the selection method under a fixed token budget.
 ```
 
-Replace the remote URL with your actual repository URL.
+The watcher records decision markers in `research-log/DECISIONS.md`, subject to its deduplication logic.
 
-## 2. Set up signed commits (recommended)
+### Start the logger from VS Code
 
-GitHub supports SSH-signed commits. Follow GitHub's current documentation to create an SSH signing key, add it to your GitHub account as a **signing key**, and configure Git:
-
-```bash
-git config --global gpg.format ssh
-git config --global user.signingkey ~/.ssh/YOUR_SIGNING_KEY.pub
-git config --global commit.gpgsign true
-```
-
-Make a test commit and check that GitHub displays it as Verified. Keep your private signing key private. Signed commits authenticate a key's signature; they do not independently prove when the underlying research was first done or who wrote the content.
-
-## 3. Use the VS Code workspace
-
-Open this folder in VS Code. Use the integrated terminal and commit small, meaningful updates regularly.
-
-Suggested cadence:
-- Start and end each research session by updating `research-log/DAILY_LOG.md`.
-- Record hypotheses before running experiments in `research-log/IDEA_LOG.md`.
-- Put each experiment's config, commit SHA, seed, environment, and result pointer in `experiments/`.
-- Save manuscript versions and decisions in Git, but never commit private data, credentials, or confidential reviewer material.
-- After a meaningful milestone, run the checkpoint script.
-
-## 4. Create and verify a checkpoint
+From the project root, open a terminal and run:
 
 ```bash
-python3 scripts/checkpoint.py --label "first-hypothesis"
-python3 scripts/verify_checkpoint.py checkpoints/checkpoint-*.json
+python3 scripts/watch_draft.py
 ```
 
-A checkpoint records the current Git commit and SHA-256 hashes of tracked files. Commit the checkpoint file in a later commit. For stronger independent timestamp evidence, publish the checkpoint hash to a trusted timestamping or transparency service and preserve the returned receipt. This starter does **not** automatically submit to an external service.
+Keep the process running while editing. Stop it with `Ctrl+C` when finished.
 
-## 5. GitHub Actions
+### Run the logger using a VS Code task
 
-A workflow under `.github/workflows/` validates JSON experiment records and checkpoint files on push and pull request. GitHub Actions logs provide a remote record that a workflow ran on a particular commit; they do not prove the research was performed without AI.
+Create `.vscode/tasks.json` with the following contents:
 
-## 6. Suggested reviewer evidence bundle
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "ICML: Start Research Logging",
+      "type": "process",
+      "command": "python3",
+      "args": ["scripts/watch_draft.py"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "runOptions": {
+        "instanceLimit": 1
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": false
+      }
+    }
+  ]
+}
+```
 
-If appropriate for the venue and your disclosure obligations, prepare:
-- repository URL and commit history;
-- selected signed commits and their verification status;
-- checkpoint manifests and any independent timestamp receipts;
-- experiment configurations, seeds, commit hashes, and reproducibility instructions;
-- concise explanation of the logging scope and limitations.
+To start the task:
 
-Do not flood reviewers with raw logs. Share only what is relevant and safe to disclose. Do not claim stronger guarantees than the evidence supports.
+1. Open the research project folder in VS Code.
+2. Press `Cmd+Shift+P` on macOS.
+3. Search for **Tasks: Run Task**.
+4. Select **ICML: Start Research Logging**.
+5. Confirm that the watcher is running in the VS Code terminal.
 
-## What this can and cannot show
+This creates a convenient named task, but it does not automatically create a permanent toolbar button. For a visible clickable button, install a suitable task-button extension from the [VS Code Marketplace](https://marketplace.visualstudio.com/), or configure a custom VS Code extension.
 
-**Can show:** a repository contains certain content at particular commits; signatures verify against configured public keys; checkpoint hashes match the files supplied; GitHub Actions ran tests on recorded commits.
+**Recommended workflow:** Start the logger when beginning a research session, and verify that its terminal remains active while editing.
 
-**Cannot show:** that AI was never used, that all ideation occurred in the repository, that a local machine was never tampered with, or that a commit timestamp is an independently trusted timestamp.
+### Important limitations
 
-This is a workflow template, not forensic certification or a substitute for following the conference's current AI-use and disclosure policy.
+- The watcher records changes to **saved files**, not every keystroke or unsaved editor buffer.
+- It records changes only while the watcher is running.
+- The first run establishes a baseline; it does not reconstruct edits made before monitoring began.
+- File-change timestamps indicate when the watcher observed a change, not necessarily the exact moment the edit occurred.
+- The watcher does not automatically commit or push changes to GitHub, or submit timestamps to an independent timestamping service.
+- It is a supporting research record, not proof that every research activity was captured or that AI tools were never used.
+
+## Recommended Evidence Workflow
+
+For important research milestones, combine activity logging with Git history and independent timestamping.
+
+1. **Start logging:** Run the VS Code task before editing.
+2. **Record the research:** Update `IDEA_LOG.md`, `DAILY_LOG.md`, and `DECISIONS.md` as appropriate.
+3. **Save and commit:** Commit meaningful changes with descriptive Git commit messages.
+4. **Push to GitHub:** Push commits to the private research repository to maintain a remote history.
+5. **Create a checkpoint:** Run the checkpoint script:
+
+   ```bash
+   python3 scripts/checkpoint.py --label "experiment-milestone"
+   ```
+
+6. **Timestamp the checkpoint:** Use OpenTimestamps on the actual generated checkpoint file:
+
+   ```bash
+   ots stamp checkpoints/ACTUAL-CHECKPOINT-FILENAME.json
+   ```
+
+   Replace the filename with the one generated by the script. Retain both the checkpoint JSON and its `.ots` proof file. A pending proof is not yet a completed independent timestamp.
+
+7. **Verify when appropriate:** Verify the timestamp proof and checkpoint hashes. To verify historical file contents, check out the relevant recorded Git commit before comparing hashes.
+8. **Keep independent copies:** Retain copies of important records and timestamp proofs outside the primary working directory.
+
+### What the evidence establishes
+
+| Evidence | What it supports |
+|---|---|
+| Git commits | A recorded history of committed changes |
+| Signed commits | That a commit signature matches the configured signing key |
+| File hashes | That file contents match a recorded digest |
+| Independent timestamps | Evidence that the timestamped data existed by an externally anchored time |
+| Experiment logs | A documented connection between configurations, code, and reported results |
+
+No individual mechanism proves the complete history of intellectual work. The strongest record combines contemporaneous notes, meaningful commits, reproducible experiments, checkpoints, and independently verifiable timestamps.
+
