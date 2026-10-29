@@ -113,12 +113,14 @@ No one mechanism proves the full history of intellectual work. These practices a
 
 ## AI Detector Suite
 
-The workflow [`.github/workflows/ai-detector-suite.yml`](.github/workflows/ai-detector-suite.yml) runs three complementary checks on **pushes**, **pull requests**, and manual runs via **workflow_dispatch**. The checks are designed as review aids: a flag does not prove AI authorship, and no flag does not prove human authorship.
+The workflow [`.github/workflows/ai-detector-suite.yml`](.github/workflows/ai-detector-suite.yml) runs five complementary checks on **pushes**, **pull requests**, and manual runs via **workflow_dispatch**. The checks are designed as review aids: a flag does not prove AI authorship, and no flag does not prove human authorship.
 
 ### Detectors
 
 | Detector | What it checks | Access and cost notes |
 |---|---|---|
+| Stylometric profile | Descriptive writing-style features: sentence length, lexical diversity, word length, punctuation, uppercase/digit ratios | No extra model; features alone do not classify AI authorship |
+| [Lukkinen academic-text detector](https://huggingface.co/Lukkinen/ai-text-detector) | Experimental paragraph-level open model targeting English CS/engineering academic text | MIT model weights; large download; generic pipeline compatibility is unverified and load failures are reported |
 | [Houtini ai-detect](https://github.com/houtini-ai/ai-detect) | A local text classifier applied to qualifying added prose; workflow selects the smaller `light` model | Open source; downloads model files on the runner |
 | [Pangram EditLens](https://github.com/pangramlabs/EditLens) | EditLens score/bucket output for qualifying added prose | Optional gated Hugging Face model; requires accepted model terms and a `HF_TOKEN` secret; **CC BY-NC-SA 4.0, non-commercial only** |
 | [Coderbuds ai-detector](https://github.com/coderbuds/ai-detector) | YAML rules for explicit tool attribution in supported commit/PR metadata and added HTML comments | Open-source rules; matches explicit markers rather than inferring AI use from writing style |
@@ -148,7 +150,7 @@ Without a token, EditLens is skipped and the other checks can continue. A qualif
 - The workflow is non-blocking: detector findings alone do not fail a build, and reports are not committed back to the repository.
 - It does not call paid detection APIs.
 
-See the [detailed detector guide](docs/ai-detector-suite.md) and the [GitHub Actions runs](https://github.com/prateekiiest/batchCoresets_norm/actions).
+The Lukkinen integration is experimental because its model card describes a custom mean-pooling architecture; the workflow records load/inference errors rather than treating failures as human-written results. Style statistics are descriptive only. See the [detailed detector guide](docs/ai-detector-suite.md) and the [GitHub Actions runs](https://github.com/prateekiiest/batchCoresets_norm/actions).
 
 ## Privacy, limitations, and licensing
 
