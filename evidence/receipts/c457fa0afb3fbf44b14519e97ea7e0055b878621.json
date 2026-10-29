@@ -1,0 +1,13 @@
+{
+  "commit": "c457fa0afb3fbf44b14519e97ea7e0055b878621",
+  "commit_message": "Add temporary prose fixture to test detector workflow end to end",
+  "parents": [
+    "f28aeab0c122a385cee431f44961860344e534bc"
+  ],
+  "receipt_type": "compact-git-commit-receipt",
+  "recorded_at_utc": "2026-10-29T17:05:17.441612+00:00",
+  "repository": "prateekiiest/batchCoresets_norm",
+  "schema_version": 1,
+  "tree": "89be4a7a3f4c13dc2075de3d2e6cb9cf09e97af4",
+  "workflow_run": "https://github.com/prateekiiest/batchCoresets_norm/actions/runs/40917892753"
+}
