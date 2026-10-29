@@ -5,6 +5,7 @@ on:
       - 'vscode-provenance/**'
       - '.cursor/**'
       - 'scripts/verify_provenance.py'
+      - 'scripts/anchor_provenance.py'
       - 'scripts/provenance.py'
       - '.github/workflows/vscode-provenance-checks.yml'
   pull_request:
@@ -36,8 +37,9 @@ jobs:
           python -m json.tool .cursor/hooks.json >/dev/null
       - name: Compile provenance scripts
         run: |
-          python -m py_compile .cursor/hooks/record_provenance.py scripts/provenance.py scripts/verify_provenance.py
+          python -m py_compile .cursor/hooks/record_provenance.py scripts/provenance.py scripts/verify_provenance.py scripts/anchor_provenance.py
       - name: Verify CLI help
         run: |
           python scripts/provenance.py --help
           python scripts/verify_provenance.py --help
+          python scripts/anchor_provenance.py --help
