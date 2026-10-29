@@ -79,6 +79,28 @@ Run it in VS Code with **Cmd+Shift+P** (macOS) or **Ctrl+Shift+P** (Windows/Linu
 - Timestamps indicate when the watcher noticed a change, not necessarily the exact time the edit was made.
 - It does not automatically commit or push changes, or independently timestamp them.
 
+## Local writing provenance (saved versions and assistance labels)
+
+The separate tool `scripts/provenance.py` is intended to address local draft evolution. Unlike GitHub Actions, it runs on your own machine and keeps its records in the ignored, local-only `.writing-provenance/` directory.
+
+Start it from the repository root before editing:
+
+```bash
+python3 scripts/provenance.py watch paper
+```
+
+You can pass additional files/directories, for example `python3 scripts/provenance.py watch paper notes/draft.tex`. It records observed saved versions, SHA-256 hashes, snapshots, the current Git HEAD, and missing-file observations. Stop it with `Ctrl+C`. It does not record unsaved keystrokes, recover changes made before it started, or determine whether a change came from an AI tool.
+
+Record a self-reported label for the current version when useful:
+
+```bash
+python3 scripts/provenance.py annotate paper/draft.tex --label ai_assisted --note "Used AI to brainstorm alternatives; revised manually"
+```
+
+Available labels: `human_written`, `ai_assisted`, `ai_generated_then_edited`, and `unknown`. An annotation is attached to the current file hash and is explicitly self-reported, not independently verified. Avoid storing private prompts or sensitive material in notes.
+
+Records and snapshots stay local and are ignored by Git by default. Back them up securely if you want to retain them; do not publish them unless you intentionally choose to. This is an honest provenance aid, not a surveillance tool or a way to prove authorship.
+
 ## Evidence and checkpoint workflow
 
 For important milestones, combine contemporaneous notes, Git history, reproducible experiment records, and independent timestamping.
