@@ -109,7 +109,7 @@ def watch(args):
                 if rel.startswith("_"):
                     continue
                 path = ROOT / rel
-                if rel not in present and path.is_relative_to(ROOT):
+                if not path.exists() and path.is_relative_to(ROOT):
                     append(EVENTS, {
                         "observed_at_utc": now(), "path": rel, "event": "file_missing",
                         "previous_sha256": state[rel].get("sha256"),
