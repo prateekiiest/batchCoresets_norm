@@ -8,7 +8,7 @@ The GitHub Actions workflow at .github/workflows/ai-detector-suite.yml runs thre
 2. **Pangram EditLens**: an open-weight text model that reports its normalized score_pred and predicted bucket for changed prose. This model repository is gated on Hugging Face and is licensed CC BY-NC-SA 4.0 for non-commercial use only. It is optional until you explicitly accept the model terms and configure a Hugging Face token.
 3. **Coderbuds ai-detector**: open YAML rules that match explicit tool attributions in commit messages, co-author trailers, added HTML comments, PR title/body, branch names, and commit authors. This does not infer AI use from coding style.
 
-The workflow creates a JSON artifact named ai-detector-report-<run id> and adds a short summary to the Actions run. It does not commit reports back to the repository, fail a build merely because a detector flags content, or call paid detection APIs.
+The workflow creates two reports: `ai-detector-report.json` for machine-readable results and `ai-detector-report.md` for a readable per-detector summary. Both are uploaded together as the `ai-detector-report-<run id>` artifact for 30 days, and the Markdown report is also added to the Actions run summary. Reports are generated even when one or more detectors are skipped or error, provided the orchestration script itself runs. The workflow does not commit reports back to the repository, fail a build merely because a detector flags content, or call paid detection APIs.
 
 ## Enable Pangram EditLens
 
