@@ -149,6 +149,9 @@ def houtini(snippets):
 
 def pangram(snippets):
     out = {"detector": "pangram-editlens", "status": "skipped", "files": []}
+    if not snippets:
+        out["detail"] = "No changed prose met the minimum length threshold."
+        return out
     token = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_HUB_TOKEN")
     if not token:
         out["detail"] = "HF_TOKEN secret missing; accept the gated model terms and add the secret to enable EditLens."
