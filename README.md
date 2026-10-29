@@ -198,6 +198,23 @@ checkpoints/                             # Generated checkpoint files (if used)
 Generated logs and checkpoints may be local or ignored by Git depending on repository configuration. Review `git status` and your project's privacy requirements before committing them.
 
 
+## Presenting paper-writing provenance
+
+If you did not use AI to write a paper, preserve a dated evidence package that lets a reader inspect the writing process rather than relying on a bare declaration. For each paper or draft, retain:
+
+1. **Contemporaneous editor records:** the VS Code/Cursor event logs collected while working, together with the tracking configuration and the dates for which tracking was enabled.
+2. **Integrity verification:** the output of `python3 scripts/verify_provenance.py`, showing the event-chain checks and final hashes.
+3. **Independent time anchor:** the JSON hash manifest and its OpenTimestamps `.ots` proof, upgraded and verified when the timestamp is available. Store copies outside the development machine.
+4. **Draft history:** dated paper revisions, Git commits, and relevant research notes that show the development of the manuscript over time.
+5. **A clear scope statement:** identify the editor and AI integrations covered by the records, the period covered, and any periods or tools not captured.
+
+### Suggested statement for a paper or research-integrity review
+
+> I wrote the paper without using AI tools to generate its manuscript text. I maintained contemporaneous writing-provenance records during the documented period, verified the integrity of the recorded event logs, and preserved a hash manifest with an external timestamp. The accompanying draft history and records are provided for inspection.
+
+Use this statement only if it accurately describes your process. Attach or offer the relevant records so the statement can be checked. The timestamp establishes when the anchored hashes existed; the event logs and draft history provide the underlying context. Together, they let a reviewer assess the claim against recorded evidence. Do not describe an unrecorded period or an unmonitored tool as covered by these records, and do not rely on an AI-detector score as the basis for the claim.
+
+
 ## VS Code / Cursor unsaved-buffer provenance
 
 The [VS Code/Cursor provenance integration](vscode-provenance/README.md) includes an opt-in VS Code extension for unsaved buffer changes and Cursor hooks for automatically recording supported agent prompts, responses, and Agent/Tab file-edit events. Raw prompts, responses, and edit text are not stored; the hook log contains hashes and metadata. Cursor capture requires a one-time local opt-in (`python3 .cursor/hooks/record_provenance.py --enable`) and can be disabled with `--disable`. This is not universal AI-use detection. Verify local hash chains with `python3 scripts/verify_provenance.py`; for independent verification, externally preserve or sign the final hash.
