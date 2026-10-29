@@ -11,7 +11,7 @@ from pathlib import Path
 ZERO = "0" * 64
 ROOT = Path(os.environ.get("CURSOR_PROJECT_DIR") or Path.cwd()).resolve()
 STORE = ROOT / ".writing-provenance"
-LOG = STORE / "cursor-events.jsonl"
+LOG = STORE / "cursor-events.jsonl"\nCONSENT = STORE / "CURSOR_TRACKING_ENABLED"
 
 
 def sha(value):
