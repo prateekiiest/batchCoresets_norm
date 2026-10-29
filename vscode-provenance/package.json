@@ -1,1 +1,77 @@
-{"name":"batchcoresets-writing-provenance","displayName":"Writing Provenance (Local, Opt-in)","description":"Privacy-first local editor provenance and self-reported AI assistance.","version":"0.1.0","publisher":"prateekiiest","engines":{"vscode":"^1.85.0"},"categories":["Other"],"activationEvents":["onCommand:writingProvenance.enable","onCommand:writingProvenance.disable","onCommand:writingProvenance.logAIInteraction","onCommand:writingProvenance.verifyLog","onCommand:writingProvenance.status"],"main":"./extension.js","contributes":{"commands":[{"command":"writingProvenance.enable","title":"Writing Provenance: Enable Local Tracking"},{"command":"writingProvenance.disable","title":"Writing Provenance: Disable Tracking"},{"command":"writingProvenance.logAIInteraction","title":"Writing Provenance: Record AI Interaction (Self-Reported)"},{"command":"writingProvenance.verifyLog","title":"Writing Provenance: Verify Local Event Log"},{"command":"writingProvenance.status","title":"Writing Provenance: Show Status"}],"configuration":{"title":"Writing Provenance","properties":{"writingProvenance.storeBufferSnapshots":{"type":"boolean","default":false,"description":"Store full document snapshots locally. Off by default."},"writingProvenance.trackExtensions":{"type":"array","items":{"type":"string"},"default":[".tex",".md",".rst",".txt",".bib",".html",".htm",".py",".json"],"description":"Tracked file extensions."}}},"scripts":{"lint":"node --check extension.js"},"license":"MIT"}
+{
+  "name": "batchcoresets-writing-provenance",
+  "displayName": "Writing Provenance (Local, Opt-in)",
+  "description": "Privacy-first local editor provenance and self-reported AI assistance.",
+  "version": "0.1.0",
+  "publisher": "prateekiiest",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:writingProvenance.enable",
+    "onCommand:writingProvenance.disable",
+    "onCommand:writingProvenance.logAIInteraction",
+    "onCommand:writingProvenance.verifyLog",
+    "onCommand:writingProvenance.status"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "writingProvenance.enable",
+        "title": "Writing Provenance: Enable Local Tracking"
+      },
+      {
+        "command": "writingProvenance.disable",
+        "title": "Writing Provenance: Disable Tracking"
+      },
+      {
+        "command": "writingProvenance.logAIInteraction",
+        "title": "Writing Provenance: Record AI Interaction (Self-Reported)"
+      },
+      {
+        "command": "writingProvenance.verifyLog",
+        "title": "Writing Provenance: Verify Local Event Log"
+      },
+      {
+        "command": "writingProvenance.status",
+        "title": "Writing Provenance: Show Status"
+      }
+    ],
+    "configuration": {
+      "title": "Writing Provenance",
+      "properties": {
+        "writingProvenance.storeBufferSnapshots": {
+          "type": "boolean",
+          "default": false,
+          "description": "Store full document snapshots locally. Off by default."
+        },
+        "writingProvenance.trackExtensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            ".tex",
+            ".md",
+            ".rst",
+            ".txt",
+            ".bib",
+            ".html",
+            ".htm",
+            ".py",
+            ".json"
+          ],
+          "description": "Tracked file extensions."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "lint": "node --check extension.js"
+  },
+  "license": "MIT"
+}
