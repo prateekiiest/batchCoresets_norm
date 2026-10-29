@@ -2,7 +2,6 @@ name: AI Detector Suite
 
 on:
   push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
 
