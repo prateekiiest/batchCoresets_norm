@@ -54,6 +54,7 @@ jobs:
           PR_BODY: ${{ github.event.pull_request.body || '' }}
           PR_BRANCH: ${{ github.head_ref || github.ref_name }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          ENABLE_LUKKINEN: ${{ vars.ENABLE_LUKKINEN }}
         run: |
           python scripts/ai_detector_suite.py \
             --base "$BASE_SHA" \
