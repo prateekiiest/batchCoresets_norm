@@ -1,0 +1,173 @@
+
+name: Research Evidence
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "23 */6 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: research-evidence-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  create-receipt:
+    if: github.event_name != 'schedule' && github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install OpenTimestamps
+        run: python -m pip install --upgrade opentimestamps-client
+
+      - name: Create compact commit receipt
+        id: receipt
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+          from datetime import datetime, timezone
+
+          sha = os.environ["COMMIT_SHA"]
+          def git(*args):
+              return subprocess.check_output(
+                  ["git", *args], text=True
+              ).strip()
+
+          receipt = {
+              "schema_version": 1,
+              "repository": os.environ["REPOSITORY"],
+              "commit": sha,
+              "tree": git("rev-parse", f"{sha}^{{tree}}"),
+              "parents": git("rev-list", "--parents", "-n", "1", sha).split()[1:],
+              "commit_message": git("show", "-s", "--format=%s", sha),
+              "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
+              "workflow_run": os.environ["RUN_URL"],
+              "receipt_type": "compact-git-commit-receipt"
+          }
+
+          out = Path("evidence/receipts")
+          out.mkdir(parents=True, exist_ok=True)
+          path = out / f"{sha}.json"
+
+          if not path.exists():
+              path.write_text(
+                  json.dumps(receipt, indent=2, sort_keys=True) + "\n"
+              )
+              print(f"Created {path}")
+          else:
+              print(f"Receipt already exists: {path}")
+
+          print(f"receipt_path={path}")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"path={path}\n")
+          PY
+
+      - name: Create full manifest for a declared milestone
+        id: milestone
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          MESSAGE="$(git show -s --format=%B "$COMMIT_SHA")"
+          if printf '%s' "$MESSAGE" | grep -Eiq '\[milestone\]'; then
+            python scripts/checkpoint.py --label "research-milestone"
+            echo "is_milestone=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_milestone=false" >> "$GITHUB_OUTPUT"
+            echo "Routine commit: compact receipt only."
+          fi
+
+      - name: Timestamp receipts and manifests
+        run: |
+          shopt -s nullglob
+          files=(evidence/receipts/*.json checkpoints/checkpoint-*.json)
+
+          for file in "${files[@]}"; do
+            proof="${file}.ots"
+
+            if [ -f "$proof" ]; then
+              ots upgrade "$proof" || true
+            else
+              ots stamp "$file" || true
+            fi
+
+            if [ -f "$proof" ]; then
+              echo "Proof retained: $proof (may still be pending)"
+            else
+              echo "::warning::No proof file yet for $file"
+            fi
+          done
+
+      - name: Commit receipts and milestone manifests
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add evidence/receipts/ checkpoints/
+
+          if git diff --cached --quiet; then
+            echo "No evidence files to commit."
+            exit 0
+          fi
+
+          git commit -m "Record research evidence receipts"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+  retry-timestamps:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install OpenTimestamps
+        run: python -m pip install --upgrade opentimestamps-client
+
+      - name: Retry missing proofs and upgrade pending proofs
+        run: |
+          shopt -s nullglob
+          files=(evidence/receipts/*.json checkpoints/checkpoint-*.json)
+
+          for file in "${files[@]}"; do
+            proof="${file}.ots"
+
+            if [ -f "$proof" ]; then
+              ots upgrade "$proof" || true
+              ots verify "$proof" || true
+            else
+              ots stamp "$file" || true
+            fi
+          done
+
+      - name: Preserve updated proof files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add evidence/receipts/ checkpoints/
+
+          if ! git diff --cached --quiet; then
+            git commit -m "Update OpenTimestamps evidence proofs"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
