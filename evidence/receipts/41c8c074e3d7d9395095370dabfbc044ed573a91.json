@@ -1,0 +1,13 @@
+{
+  "commit": "41c8c074e3d7d9395095370dabfbc044ed573a91",
+  "commit_message": "add fixes",
+  "parents": [
+    "468510d8952f0eb79304b29c6084d12e59d4d299"
+  ],
+  "receipt_type": "compact-git-commit-receipt",
+  "recorded_at_utc": "2026-10-29T16:12:29.102182+00:00",
+  "repository": "prateekiiest/batchCoresets_norm",
+  "schema_version": 1,
+  "tree": "40afe1198fc0d241b41bf60b7f3220dc992151b8",
+  "workflow_run": "https://github.com/prateekiiest/batchCoresets_norm/actions/runs/40909251426"
+}
