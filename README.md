@@ -120,7 +120,7 @@ The workflow [`.github/workflows/ai-detector-suite.yml`](.github/workflows/ai-de
 | Detector | What it checks | Access and cost notes |
 |---|---|---|
 | Stylometric profile | Descriptive writing-style features: sentence length, lexical diversity, word length, punctuation, uppercase/digit ratios | No extra model; features alone do not classify AI authorship |
-| [Lukkinen academic-text detector](https://huggingface.co/Lukkinen/ai-text-detector) | Experimental paragraph-level open model targeting English CS/engineering academic text | MIT model weights; large download; generic pipeline compatibility is unverified and load failures are reported |
+| [Lukkinen academic-text detector](https://huggingface.co/Lukkinen/ai-text-detector) | Experimental paragraph-level open model targeting English CS/engineering academic text | MIT model weights; opt-in via Actions variable `ENABLE_LUKKINEN=true`; large download and generic pipeline compatibility unverified |
 | [Houtini ai-detect](https://github.com/houtini-ai/ai-detect) | A local text classifier applied to qualifying added prose; workflow selects the smaller `light` model | Open source; downloads model files on the runner |
 | [Pangram EditLens](https://github.com/pangramlabs/EditLens) | EditLens score/bucket output for qualifying added prose | Optional gated Hugging Face model; requires accepted model terms and a `HF_TOKEN` secret; **CC BY-NC-SA 4.0, non-commercial only** |
 | [Coderbuds ai-detector](https://github.com/coderbuds/ai-detector) | YAML rules for explicit tool attribution in supported commit/PR metadata and added HTML comments | Open-source rules; matches explicit markers rather than inferring AI use from writing style |
