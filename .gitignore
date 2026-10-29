@@ -8,3 +8,6 @@ __pycache__/
 .ipynb_checkpoints/
 data/private/
 outputs/private/
+
+# Local-only draft provenance snapshots, hashes, and self-reported annotations
+.writing-provenance/
