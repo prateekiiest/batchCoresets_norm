@@ -3,10 +3,38 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "ICML: Start Research Logging",
+      "label": "ICML: Start Research Logging + OTS",
+      "dependsOn": [
+        "ICML: Research Activity Logger",
+        "ICML: Automatic OTS Checkpoints"
+      ],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    },
+    {
+      "label": "ICML: Research Activity Logger",
       "type": "process",
-      "command": "python3",
+      "command": "/Users/prateekchanda/.venvs/ots/bin/python3",
       "args": ["scripts/watch_draft.py"],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "runOptions": {
+        "instanceLimit": 1
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": false
+      }
+    },
+    {
+      "label": "ICML: Automatic OTS Checkpoints",
+      "type": "process",
+      "command": "/Users/prateekchanda/.venvs/ots/bin/python3",
+      "args": ["scripts/auto_timestamp.py"],
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -23,4 +51,3 @@
     }
   ]
 }
-
