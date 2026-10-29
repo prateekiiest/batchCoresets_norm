@@ -183,6 +183,7 @@ def main():
     ap.add_argument("--head", default="HEAD")
     ap.add_argument("--rules-dir", default="vendor/coderbuds-ai-detector/rules")
     ap.add_argument("--report", default="ai-detector-report.json")
+    ap.add_argument("--markdown-report", default="ai-detector-report.md")
     a = ap.parse_args()
     base, head = a.base.strip(), a.head.strip() or "HEAD"
     shas = commits(base, head)
@@ -212,22 +213,41 @@ def main():
         "disclaimer": "Triage only, not proof of authorship. False positives and false negatives are expected. Coderbuds matches explicit attribution markers only. EditLens is CC BY-NC-SA 4.0, non-commercial only.",
         "detectors": detectors}
     Path(a.report).write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    lines = ["# AI detector suite", "", f"- Commits examined: {len(shas)}",
+    lines = ["# AI Detector Suite Report", "",
+        f"- Repository: {report['repository'] or 'local run'}",
+        f"- Event: {report['event'] or 'local run'}",
+        f"- Base revision: {base or 'not specified'}",
+        f"- Head revision: {head}",
+        f"- Commits examined: {len(shas)}",
         f"- Added prose files scored: {len(snippets)}",
         f"- Added prose words scored: {sum(count_words(t) for _, t in snippets)}",
-        "", "> Results are triage signals, not proof. No finding does not establish human authorship.", "", "## Detector status", ""]
+        "", "> **Interpretation:** These results are triage signals, not proof of authorship. False positives and false negatives are expected.", "",
+        "## Detector status", ""]
     for d in detectors:
-        lines.append("- **" + d["detector"] + "**: " + d.get("status", "unknown"))
-        if d.get("detail"): lines.append("  - " + d["detail"])
+        lines.append("### " + d["detector"])
+        lines.append("")
+        lines.append("- **Status:** " + d.get("status", "unknown"))
+        if d.get("detail"): lines.append("- **Details:** " + d["detail"].replace("\n", " "))
         for f in d.get("findings", [])[:25]:
-            lines.append("  - " + str(f.get("tool", "rule")) + ": " + str(f.get("indicator", f.get("category", "match"))))
+            lines.append("- **Rule match:** " + str(f.get("tool", "rule")) + " — " + str(f.get("indicator", f.get("category", "match"))))
         for f in d.get("files", []):
-            score = f.get("model_ai_score", f.get("score_pred", "see JSON artifact"))
-            lines.append("  - " + f.get("path", "?") + ": " + str(score))
+            score = f.get("model_ai_score", f.get("score_pred", "see JSON report"))
+            lines.append("- **" + f.get("path", "?") + "** (" + str(f.get("word_count", "?")) + " words): score " + str(score))
+            if f.get("label") is not None: lines.append("  - Label: " + str(f["label"]))
+            if f.get("bucket_pred") is not None: lines.append("  - Predicted bucket: " + str(f["bucket_pred"]))
+            if f.get("error"): lines.append("  - Error: " + str(f["error"]).replace("\n", " "))
+        lines.append("")
+    lines.extend(["## Limitations", "",
+        "- A skipped detector may mean no qualifying changed prose was found, not necessarily a setup failure.",
+        "- Coderbuds detects explicit attribution markers; it does not detect all AI-assisted content.",
+        "- EditLens scores are not probabilities of AI authorship.",
+        "- Do not use this report as the sole basis for academic-integrity or disciplinary decisions.", ""])
+    Path(a.markdown_report).write_text("\n".join(lines), encoding="utf-8")
     summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary:
         with open(summary, "a", encoding="utf-8") as f: f.write("\n".join(lines) + "\n")
-    print(json.dumps({"report": a.report, "commits": len(shas), "prose_files": len(snippets),
+    print(json.dumps({"report": a.report, "markdown_report": a.markdown_report,
+        "commits": len(shas), "prose_files": len(snippets),
         "coderbuds_findings": len([f for f in findings if not f.get("status")]),
         "statuses": {d["detector"]: d.get("status") for d in detectors}}, indent=2))
 
