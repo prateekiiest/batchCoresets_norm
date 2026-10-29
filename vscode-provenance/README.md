@@ -26,7 +26,7 @@ The extension observes document-change events, including unsaved buffers, while 
 | `editor_or_ai_tool_observed` | Cursor emitted the named hook event | That every changed character came from AI, or that every AI interaction was captured |
 | Inference (not an event) | A downstream analysis correlates AI events with subsequent document changes | Definitive authorship or causal attribution |
 
-There is **no manual AI-use annotation command**. Cursor hooks automatically record only events Cursor exposes. A VS Code-only extension cannot universally detect every AI provider, browser chat, or third-party extension's activity. Provider-specific integration is required for other tools.
+There is **no manual AI-use annotation command**. After explicit opt-in, Cursor hooks automatically record only events Cursor exposes. A VS Code-only extension cannot universally detect every AI provider, browser chat, or third-party extension's activity. Provider-specific integration is required for other tools.
 
 ## Privacy defaults
 
@@ -51,7 +51,7 @@ The verifier checks the chain and reports the final hash for each available log.
 1. Open the repository in Cursor. Review `.cursor/hooks.json` and the hook script before enabling project hooks.
 2. Confirm Cursor reports the hooks as loaded in its Hooks interface/output channel. Hook behavior depends on Cursor version and execution mode.
 3. For VS Code, open `vscode-provenance/`, press F5 to launch an Extension Development Host, and enable local tracking in the target workspace.
-4. Run `python3 scripts/verify_provenance.py` to check existing logs.
+4. In Cursor, explicitly opt in with `python3 .cursor/hooks/record_provenance.py --enable`. Use `--disable` to stop logging.\n5. Run `python3 scripts/verify_provenance.py` to check existing logs.
 
 ## Limitations
 
