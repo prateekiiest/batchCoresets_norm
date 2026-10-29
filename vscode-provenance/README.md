@@ -44,7 +44,7 @@ Both event logs are append-only JSONL with SHA-256 event hashes linked to the pr
 python3 scripts/verify_provenance.py
 ```
 
-The verifier checks the chain and reports the final hash for each available log. To make the final hash independently verifiable, preserve it somewhere outside the machine or use a trusted signature/timestamp service. A local user with write access can rewrite and re-hash the entire log. A hash chain alone is not a digital signature or trusted timestamp.
+The verifier checks the chain and reports the final hash for each available log. To anchor the current log hashes externally, run `python3 -m pip install --user opentimestamps-client` and then `python3 scripts/anchor_provenance.py`. This writes a manifest containing only the log SHA-256 hashes and asks OpenTimestamps calendars to timestamp that manifest. Keep the generated JSON manifest and matching `.ots` proof, copy both off this machine, and later run `ots upgrade MANIFEST.json.ots` followed by `ots verify MANIFEST.json.ots` (replace the filename with the actual generated name). A proof can initially be pending. A local user with write access can rewrite and re-hash a log before anchoring; the timestamp only supports that the anchored digest existed by the externally attested time, not authorship or completeness.
 
 ## Install / enable
 
