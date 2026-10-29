@@ -11,7 +11,8 @@ from pathlib import Path
 ZERO = "0" * 64
 ROOT = Path(os.environ.get("CURSOR_PROJECT_DIR") or Path.cwd()).resolve()
 STORE = ROOT / ".writing-provenance"
-LOG = STORE / "cursor-events.jsonl"\nCONSENT = STORE / "CURSOR_TRACKING_ENABLED"
+LOG = STORE / "cursor-events.jsonl"
+CONSENT = STORE / "CURSOR_TRACKING_ENABLED"
 
 
 def sha(value):
@@ -24,8 +25,7 @@ def relative_file(raw):
     if not isinstance(raw, str) or not raw:
         return None
     try:
-        p = Path(raw).resolve()
-        return str(p.relative_to(ROOT))
+        return str(Path(raw).resolve().relative_to(ROOT))
     except (ValueError, OSError):
         return "[outside-workspace]"
 
@@ -37,13 +37,11 @@ def event_payload(data):
         "evidence_class": "editor_or_ai_tool_observed",
         "source": "Cursor hook",
     }
-    # Keep identifiers useful for correlation, but do not persist prompts, responses,
-    # edit text, shell commands, tool arguments, transcripts, or reasoning.
     for key in ("session_id", "conversation_id", "generation_id", "tool_use_id", "cursor_version", "model", "model_id"):
         value = data.get(key)
         if isinstance(value, (str, int, float, bool)):
             out[key] = value
-    if name in ("beforeSubmitPrompt",):
+    if name == "beforeSubmitPrompt":
         prompt = data.get("prompt")
         if isinstance(prompt, str):
             out["prompt_sha256"] = sha(prompt)
@@ -51,7 +49,7 @@ def event_payload(data):
         attachments = data.get("attachments")
         if isinstance(attachments, list):
             out["attachment_count"] = len(attachments)
-    if name in ("afterAgentResponse",):
+    if name == "afterAgentResponse":
         response = data.get("text")
         if isinstance(response, str):
             out["response_sha256"] = sha(response)
@@ -99,8 +97,8 @@ def append(record):
         pass
     previous = ZERO
     if LOG.exists():
-        with LOG.open("r", encoding="utf-8") as f:
-            for line in f:
+        with LOG.open("r", encoding="utf-8") as stream:
+            for line in stream:
                 if line.strip():
                     try:
                         previous = json.loads(line).get("event_hash", ZERO)
@@ -113,10 +111,9 @@ def append(record):
         **record,
         "previous_event_hash": previous,
     }
-    encoded = json.dumps(event, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-    event["event_hash"] = sha(encoded)
-    with LOG.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(event, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n")
+    event["event_hash"] = sha(json.dumps(event, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
+    with LOG.open("a", encoding="utf-8") as stream:
+        stream.write(json.dumps(event, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n")
     try:
         os.chmod(LOG, 0o600)
     except OSError:
@@ -124,13 +121,30 @@ def append(record):
 
 
 def main():
+    if "--enable" in sys.argv:
+        STORE.mkdir(mode=0o700, parents=True, exist_ok=True)
+        CONSENT.write_text("Explicit local opt-in at " + datetime.now(timezone.utc).isoformat() + "\n", encoding="utf-8")
+        try:
+            os.chmod(CONSENT, 0o600)
+        except OSError:
+            pass
+        print("Cursor provenance enabled locally. Raw prompts, responses, and edit text are not stored.")
+        return 0
+    if "--disable" in sys.argv:
+        try:
+            CONSENT.unlink()
+        except FileNotFoundError:
+            pass
+        print("Cursor provenance disabled locally.")
+        return 0
+    if not CONSENT.exists():
+        return 0
     try:
         data = json.load(sys.stdin)
         if not isinstance(data, dict):
             return 0
         append(event_payload(data))
     except Exception as exc:
-        # Do not echo input content to logs or stderr; avoid leaking prompt/file text.
         print("writing-provenance hook error: " + type(exc).__name__, file=sys.stderr)
     return 0
 
