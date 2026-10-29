@@ -59,12 +59,15 @@ jobs:
             --base "$BASE_SHA" \
             --head "$HEAD_SHA" \
             --rules-dir vendor/coderbuds-ai-detector/rules \
-            --report ai-detector-report.json
+            --report ai-detector-report.json \\
+            --markdown-report ai-detector-report.md
 
       - name: Upload detector report
         if: always() && hashFiles('ai-detector-report.json') != ''
         uses: actions/upload-artifact@v4
         with:
           name: ai-detector-report-${{ github.run_id }}
-          path: ai-detector-report.json
+          path: |
+            ai-detector-report.json
+            ai-detector-report.md
           retention-days: 30
