@@ -1,0 +1,13 @@
+{
+  "commit": "44068250c088db15287eca34181a7e721e9135c0",
+  "commit_message": "Document academic model opt-in",
+  "parents": [
+    "06930edf0b56c82e4bcd97ea9d05be38259bcd5f"
+  ],
+  "receipt_type": "compact-git-commit-receipt",
+  "recorded_at_utc": "2026-10-29T17:02:53.850847+00:00",
+  "repository": "prateekiiest/batchCoresets_norm",
+  "schema_version": 1,
+  "tree": "8f0830a2d6d12615fb09095bdf4066d1bbb28e85",
+  "workflow_run": "https://github.com/prateekiiest/batchCoresets_norm/actions/runs/40917480861"
+}
