@@ -1,0 +1,13 @@
+{
+  "commit": "092ce960ada497de3dff466e65d1894fe44ce89f",
+  "commit_message": "Smoke-test local provenance tool in CI",
+  "parents": [
+    "e1f0208c35fbe7d98995008450e4f384efb06a53"
+  ],
+  "receipt_type": "compact-git-commit-receipt",
+  "recorded_at_utc": "2026-10-29T17:14:59.497700+00:00",
+  "repository": "prateekiiest/batchCoresets_norm",
+  "schema_version": 1,
+  "tree": "a9c2305318c463707be96887a008aa07a7819ba1",
+  "workflow_run": "https://github.com/prateekiiest/batchCoresets_norm/actions/runs/40919447819"
+}
