@@ -44,6 +44,11 @@ jobs:
           python -m pip install onnxruntime
           python -m pip install "git+https://github.com/houtini-ai/ai-detect.git"
 
+      - name: Smoke-test local provenance CLI
+        run: |
+          python -m py_compile scripts/provenance.py
+          python scripts/provenance.py --help
+
       - name: Fetch open Coderbuds attribution rules
         run: git clone --depth 1 https://github.com/coderbuds/ai-detector.git vendor/coderbuds-ai-detector
 
