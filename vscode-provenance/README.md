@@ -1,41 +1,62 @@
 # Writing Provenance for VS Code / Cursor
 
-Local, opt-in evidence for document-buffer changes (including unsaved edits) and explicit AI-interaction annotations.
+Automated, local provenance capture for editor buffer changes and Cursor AI/editor events. The system distinguishes events emitted by the editor/tool from inferences about who authored text.
 
-## Privacy defaults
-- Tracking is **off until explicitly enabled** with the Command Palette command **Writing Provenance: Enable Local Tracking** and a modal consent prompt.
-- Tracking is enabled only for the current editor window and resets on restart.
-- No network requests, telemetry, keylogging, clipboard capture, screenshots, prompt capture, or automatic uploads.
-- By default, records hashes and metadata, not text: workspace-relative path, observation time, editor document version, dirty/saved state, character count, and change-size metadata.
-- Full buffer snapshots are **off by default**. The optional setting writingProvenance.storeBufferSnapshots can store confidential text locally.
-- Logs live under .writing-provenance/ and should remain untracked and private.
+## What is captured automatically
 
-## Install for development
-1. Open vscode-provenance/ in VS Code or Cursor.
-2. Install @vscode/vsce as a developer tool and run vsce package, or press F5 to launch an Extension Development Host.
-3. Install the generated VSIX using **Extensions: Install from VSIX...**.
-4. In the target workspace, run **Writing Provenance: Enable Local Tracking**.
-5. Use **Writing Provenance: Record AI Interaction (Self-Reported)** to add a manual AI-use annotation.
+### Cursor hooks
 
-No runtime dependencies beyond the VS Code API and Node.js built-ins.
+The project hook configuration in `.cursor/hooks.json` records supported Cursor events, including:
+- agent session start/end and completion;
+- prompt submission (prompt hash and character count only);
+- agent response (response hash and character count only);
+- Agent file edits and inline Tab edits (file path plus hashes and lengths of old/new text).
+
+**Raw prompts, responses, edit text, tool arguments, shell commands, transcripts, and model reasoning are not written to the provenance log.** Hashes and metadata stay local in `.writing-provenance/cursor-events.jsonl`. Cursor must load/enable the project's hooks for these events to be captured. Hook support can vary by Cursor version and execution mode; check Cursor's Hooks output channel.
+
+### VS Code extension
+
+The extension observes document-change events, including unsaved buffers, while enabled. By default, it stores buffer hashes and metadata, not text. Full buffer snapshots are optional and disabled by default. Tracking is off until you explicitly enable it in the Command Palette, and resets on restart.
 
 ## Evidence classes
+
 | Evidence class | Meaning | Does not prove |
 |---|---|---|
-| editor_observed | The extension observed a buffer state or editor event while enabled | Who authored text, exact edit time, or AI use |
-| user_self_reported | A user manually recorded an AI interaction | That it occurred exactly as described or that text came from that tool |
-| External anchor | A separately retained signature/timestamp or trusted platform record | The entire intellectual history or intent |
+| `editor_observed` | VS Code reported a document buffer/change event | Who authored the text or whether AI was used |
+| `editor_or_ai_tool_observed` | Cursor emitted the named hook event | That every changed character came from AI, or that every AI interaction was captured |
+| Inference (not an event) | A downstream analysis correlates AI events with subsequent document changes | Definitive authorship or causal attribution |
 
-There is no universal VS Code API for observing every Cursor, Copilot, ChatGPT, or browser AI interaction. AI annotations are manual, not automatic; provider-specific integration would be required for stronger observed evidence.
+There is **no manual AI-use annotation command**. After explicit opt-in, Cursor hooks automatically record only events Cursor exposes. A VS Code-only extension cannot universally detect every AI provider, browser chat, or third-party extension's activity. Provider-specific integration is required for other tools.
 
-## Tamper evidence
-Events are JSON Lines in .writing-provenance/vscode-events.jsonl. Each record hashes its JSON fields and the preceding event hash. Run **Writing Provenance: Verify Local Event Log** to detect common edits, deletions, or reordering.
+## Privacy defaults
 
-**Limit:** a local user with write access can rewrite the entire log and recompute the chain. The hash chain is not a digital signature, trusted timestamp, or proof that a self-report is true. For stronger evidence, preserve the final log hash outside the machine or use an independently operated timestamp/signature service.
+- No telemetry, network calls, automatic uploads, keylogging, clipboard capture, screenshots, or raw prompt/response/content logging.
+- Cursor prompt and response hashes can still reveal equality across repeated content and are not a substitute for a privacy review. Do not add raw content fields to the hook logger.
+- VS Code buffer hashes and change metadata are recorded only while tracking is explicitly enabled.
+- Logs live under `.writing-provenance/`, which is ignored by Git. Review logs before sharing them.
+- Full VS Code buffer snapshots are off by default; enabling them stores confidential text locally.
+
+## Tamper evidence and verification
+
+Both event logs are append-only JSONL with SHA-256 event hashes linked to the previous event hash. Verify them from the repository root:
+
+```bash
+python3 scripts/verify_provenance.py
+```
+
+The verifier checks the chain and reports the final hash for each available log. To make the final hash independently verifiable, preserve it somewhere outside the machine or use a trusted signature/timestamp service. A local user with write access can rewrite and re-hash the entire log. A hash chain alone is not a digital signature or trusted timestamp.
+
+## Install / enable
+
+1. Open the repository in Cursor. Review `.cursor/hooks.json` and the hook script before enabling project hooks.
+2. Confirm Cursor reports the hooks as loaded in its Hooks interface/output channel. Hook behavior depends on Cursor version and execution mode.
+3. For VS Code, open `vscode-provenance/`, press F5 to launch an Extension Development Host, and enable local tracking in the target workspace.
+4. In Cursor, explicitly opt in with `python3 .cursor/hooks/record_provenance.py --enable`. Use `--disable` to stop logging.\n5. Run `python3 scripts/verify_provenance.py` to check existing logs.
 
 ## Limitations
-- Records document-change events, not individual keystrokes.
-- Unsaved buffers are observed, but default logs retain only hashes, not text. A reviewer needs the exact buffer to compare it to the hash.
-- Timestamps are observation times, not guaranteed edit times.
-- Only configured extensions are tracked. Multi-root workspaces use the first workspace folder.
-- This is a provenance aid, not an authorship detector or proof of authorship.
+
+- Cursor hooks observe only supported hook events, not every possible AI interaction or every model provider.
+- Hook events and document changes can be correlated, but timing alone does not prove the origin of every character.
+- The extension records document-change events, not individual keystrokes.
+- Observation timestamps are not guaranteed edit timestamps.
+- This is provenance evidence, not an AI detector, authorship proof, or guarantee that logs are impossible to alter.

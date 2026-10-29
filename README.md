@@ -91,15 +91,7 @@ python3 scripts/provenance.py watch paper
 
 You can pass additional files/directories, for example `python3 scripts/provenance.py watch paper notes/draft.tex`. It records observed saved versions, SHA-256 hashes, snapshots, the current Git HEAD, and missing-file observations. Stop it with `Ctrl+C`. It does not record unsaved keystrokes, recover changes made before it started, or determine whether a change came from an AI tool.
 
-Record a self-reported label for the current version when useful:
-
-```bash
-python3 scripts/provenance.py annotate paper/draft.tex --label ai_assisted --note "Used AI to brainstorm alternatives; revised manually"
-```
-
-Available labels: `human_written`, `ai_assisted`, `ai_generated_then_edited`, and `unknown`. An annotation is attached to the current file hash and is explicitly self-reported, not independently verified. Avoid storing private prompts or sensitive material in notes.
-
-Records and snapshots stay local and are ignored by Git by default. Back them up securely if you want to retain them; do not publish them unless you intentionally choose to. This is an honest provenance aid, not a surveillance tool or a way to prove authorship.
+Manual self-reported assistance labels are intentionally not part of the workflow. For supported Cursor Agent/Tab events, use the automatic hooks documented below; activity outside those hooks remains unobserved.\n\nRecords and snapshots stay local and are ignored by Git by default. Back them up securely if you want to retain them; do not publish them unless you intentionally choose to. This is an honest provenance aid, not a surveillance tool or a way to prove authorship.
 
 ## Evidence and checkpoint workflow
 
@@ -199,4 +191,4 @@ Generated logs and checkpoints may be local or ignored by Git depending on repos
 
 ## VS Code / Cursor unsaved-buffer provenance
 
-An opt-in extension is available in [vscode-provenance/](vscode-provenance/README.md). It observes editor document-change events, including unsaved buffers, and writes local hash-chained records. By default it records buffer hashes and metadata, not text. AI interactions are manually annotated and clearly labeled as self-reported; this extension does not automatically detect all AI use. Read the extension documentation for privacy settings, evidence limitations, installation, and verification.
+The [VS Code/Cursor provenance integration](vscode-provenance/README.md) includes an opt-in VS Code extension for unsaved buffer changes and Cursor hooks for automatically recording supported agent prompts, responses, and Agent/Tab file-edit events. Raw prompts, responses, and edit text are not stored; the hook log contains hashes and metadata. Cursor capture requires a one-time local opt-in (`python3 .cursor/hooks/record_provenance.py --enable`) and can be disabled with `--disable`. This is not universal AI-use detection. Verify local hash chains with `python3 scripts/verify_provenance.py`; for independent verification, externally preserve or sign the final hash.

@@ -123,28 +123,6 @@ def watch(args):
         print("\nWatcher stopped.")
 
 
-def annotate(args):
-    if args.label not in {"human_written", "ai_assisted", "ai_generated_then_edited", "unknown"}:
-        raise SystemExit("Invalid label.")
-    path = Path(args.file)
-    if not path.is_absolute():
-        path = ROOT / path
-    if not path.is_file():
-        raise SystemExit(f"File not found: {path}")
-    data = path.read_bytes()
-    append(ANNOTATIONS, {
-        "recorded_at_utc": now(),
-        "path": relative(path.resolve()),
-        "file_sha256": sha(data),
-        "label": args.label,
-        "note": args.note,
-        "git_head": git_head(),
-        "self_reported": True,
-        "warning": "Self-reported annotation; not independently verified."
-    })
-    print(f"Annotation saved locally for {relative(path.resolve())} ({args.label}).")
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
@@ -152,12 +130,6 @@ def main():
     w.add_argument("paths", nargs="*", default=["paper"], help="Files/directories; defaults to paper/")
     w.add_argument("--interval", type=int, default=3, help="Polling interval in seconds (minimum 1)")
     w.set_defaults(func=watch)
-    a = sub.add_parser("annotate", help="Add a self-reported assistance label for the current file")
-    a.add_argument("file")
-    a.add_argument("--label", required=True,
-                   choices=["human_written", "ai_assisted", "ai_generated_then_edited", "unknown"])
-    a.add_argument("--note", default="", help="Optional note; avoid storing sensitive prompt content")
-    a.set_defaults(func=annotate)
     args = parser.parse_args()
     args.func(args)
 

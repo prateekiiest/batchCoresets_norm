@@ -13,7 +13,6 @@
   "activationEvents": [
     "onCommand:writingProvenance.enable",
     "onCommand:writingProvenance.disable",
-    "onCommand:writingProvenance.logAIInteraction",
     "onCommand:writingProvenance.verifyLog",
     "onCommand:writingProvenance.status"
   ],
@@ -27,10 +26,6 @@
       {
         "command": "writingProvenance.disable",
         "title": "Writing Provenance: Disable Tracking"
-      },
-      {
-        "command": "writingProvenance.logAIInteraction",
-        "title": "Writing Provenance: Record AI Interaction (Self-Reported)"
       },
       {
         "command": "writingProvenance.verifyLog",
