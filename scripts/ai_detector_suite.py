@@ -153,6 +153,9 @@ def academic_text_detector(snippets):
     if not snippets:
         out["detail"] = "No changed prose met the minimum length threshold."
         return out
+    if os.environ.get("ENABLE_LUKKINEN", "").lower() not in {"1", "true", "yes"}:
+        out["detail"] = "Disabled by default because the published weights use a custom architecture and the generic Transformers loader is unverified. Set repository variable ENABLE_LUKKINEN=true to attempt experimental loading."
+        return out
     try:
         from transformers import pipeline
         clf = pipeline("text-classification", model="Lukkinen/ai-text-detector", device=-1)
