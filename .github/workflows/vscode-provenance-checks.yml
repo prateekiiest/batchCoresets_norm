@@ -3,10 +3,16 @@ on:
   push:
     paths:
       - 'vscode-provenance/**'
+      - '.cursor/**'
+      - 'scripts/verify_provenance.py'
+      - 'scripts/provenance.py'
       - '.github/workflows/vscode-provenance-checks.yml'
   pull_request:
     paths:
       - 'vscode-provenance/**'
+      - '.cursor/**'
+      - 'scripts/verify_provenance.py'
+      - 'scripts/provenance.py'
       - '.github/workflows/vscode-provenance-checks.yml'
   workflow_dispatch:
 permissions:
@@ -19,7 +25,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Check JavaScript syntax
         run: node --check vscode-provenance/extension.js
-      - name: Validate extension manifest
-        run: node -e "const p=require('./vscode-provenance/package.json'); if (!p.main || !p.contributes.commands || !p.engines.vscode) process.exit(1); console.log('Manifest OK')"
+      - name: Validate extension manifest and Cursor hook config
+        run: |
+          python -m json.tool vscode-provenance/package.json >/dev/null
+          python -m json.tool .cursor/hooks.json >/dev/null
+      - name: Compile provenance scripts
+        run: |
+          python -m py_compile .cursor/hooks/record_provenance.py scripts/provenance.py scripts/verify_provenance.py
+      - name: Verify CLI help
+        run: |
+          python scripts/provenance.py --help
+          python scripts/verify_provenance.py --help
