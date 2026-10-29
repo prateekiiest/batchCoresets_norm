@@ -1,0 +1,33 @@
+name: Validate research records
+on:
+  push:
+  pull_request:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate experiment JSON
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for p in Path("experiments").glob("*.json"):
+              json.loads(p.read_text())
+              print("valid:", p)
+          PY
+      - name: Verify checkpoint structure
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for p in Path("checkpoints").glob("*.json"):
+              d=json.loads(p.read_text())
+              assert "git_commit" in d and "tracked_file_sha256" in d
+              print("checkpoint structure valid:", p)
+          PY

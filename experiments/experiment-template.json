@@ -1,0 +1,22 @@
+{
+  "experiment_id": "EXP-0001",
+  "created_at_local": "YYYY-MM-DDTHH:MM:SS+05:30",
+  "research_question": "",
+  "hypothesis_id": "IDEA-0001",
+  "git_commit": "",
+  "command": "",
+  "config_path": "",
+  "random_seeds": [],
+  "dataset_name_and_version": "",
+  "dataset_checksum_if_available": "",
+  "environment": {
+    "python": "",
+    "framework": "",
+    "hardware": "",
+    "dependency_lockfile": ""
+  },
+  "metrics": {},
+  "result_paths": [],
+  "notes": "",
+  "status": "planned"
+}
