@@ -143,8 +143,8 @@ Without a token, EditLens is skipped and the other checks can continue. A qualif
 
 ### Reports and workflow behavior
 
-- The job adds a short summary to the Actions run.
-- It uploads `ai-detector-report.json` as an artifact named `ai-detector-report-<run-id>`, retained for **30 days**.
+- The job adds a readable Markdown report to the Actions run summary.
+- It uploads both `ai-detector-report.md` (human-readable) and `ai-detector-report.json` (machine-readable) as the `ai-detector-report-<run-id>` artifact, retained for **30 days**.
 - The workflow is non-blocking: detector findings alone do not fail a build, and reports are not committed back to the repository.
 - It does not call paid detection APIs.
 
