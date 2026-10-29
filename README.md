@@ -195,3 +195,8 @@ checkpoints/                             # Generated checkpoint files (if used)
 ```
 
 Generated logs and checkpoints may be local or ignored by Git depending on repository configuration. Review `git status` and your project's privacy requirements before committing them.
+
+
+## VS Code / Cursor unsaved-buffer provenance
+
+An opt-in extension is available in [vscode-provenance/](vscode-provenance/README.md). It observes editor document-change events, including unsaved buffers, and writes local hash-chained records. By default it records buffer hashes and metadata, not text. AI interactions are manually annotated and clearly labeled as self-reported; this extension does not automatically detect all AI use. Read the extension documentation for privacy settings, evidence limitations, installation, and verification.
