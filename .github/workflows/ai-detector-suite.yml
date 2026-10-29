@@ -32,7 +32,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/huggingface/hub
-          key: hf-ai-detectors-v1-${{ runner.os }}-${{ hashFiles('.github/workflows/ai-detector-suite.yml') }}
+          key: hf-ai-detectors-v2-${{ runner.os }}-${{ hashFiles('.github/workflows/ai-detector-suite.yml') }}
           restore-keys: |
             hf-ai-detectors-v1-${{ runner.os }}-
 
@@ -46,7 +46,7 @@ jobs:
       - name: Fetch open Coderbuds attribution rules
         run: git clone --depth 1 https://github.com/coderbuds/ai-detector.git vendor/coderbuds-ai-detector
 
-      - name: Run the three-detector suite
+      - name: Run the detector suite
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || '' }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
