@@ -1,3 +1,0 @@
-# Detector smoke-test fixture
-
-This temporary document exists only to exercise the repository's AI detector workflow from commit to artifact. It contains a small, ordinary prose sample with more than eighty words so the changed-text threshold is met. The analysis should report descriptive style measurements, attempt the local Houtini model, check the repository's explicit attribution rules, and record clear statuses for any optional model that is unavailable. The test must not treat style statistics as proof of authorship. It should also produce a machine-readable JSON report and a human-readable Markdown summary, upload both as a workflow artifact, and keep the workflow non-blocking when one detector fails. This text is a test fixture, not research content.
