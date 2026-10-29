@@ -97,6 +97,15 @@ Manual self-reported assistance labels are intentionally not part of the workflo
 
 For important milestones, combine contemporaneous notes, Git history, reproducible experiment records, and independent timestamping.
 
+For the VS Code/Cursor event logs, create a privacy-preserving manifest containing the SHA-256 digest of each available log, then timestamp that manifest with OpenTimestamps:
+
+```bash
+python3 -m pip install --user opentimestamps-client
+python3 scripts/anchor_provenance.py
+```
+
+This validates the event chains first, then submits only a manifest of log hashes (not prompts, responses, or edit contents) to public timestamp calendars. Keep the generated `checkpoints/provenance-anchor-*.json` and matching `.ots` proof. A proof may initially be pending; later run `ots upgrade checkpoints/ACTUAL-MANIFEST.json.ots` and verify it with `ots verify checkpoints/ACTUAL-MANIFEST.json.ots`. Copy both files to storage outside this computer (for example, a separate private cloud account or removable drive). The external timestamp supports that the hashed manifest existed no later than the timestamp anchored by the calendar; it does not prove authorship or that the original log was complete. Do not publish the log files themselves unless you intend to disclose their contents.
+
 1. Start the logger before the research session.
 2. Update `IDEA_LOG.md`, `DAILY_LOG.md`, and `DECISIONS.md` where relevant.
 3. Commit meaningful changes with descriptive messages and push them to the appropriate remote repository.
