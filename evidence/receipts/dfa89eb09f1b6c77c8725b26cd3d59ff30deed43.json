@@ -1,0 +1,13 @@
+{
+  "commit": "dfa89eb09f1b6c77c8725b26cd3d59ff30deed43",
+  "commit_message": "Remove temporary end-to-end detector test fixture",
+  "parents": [
+    "3ca2a50b6a1ff6973e098f3d3cb7958c6a070e9b"
+  ],
+  "receipt_type": "compact-git-commit-receipt",
+  "recorded_at_utc": "2026-10-29T17:07:12.028581+00:00",
+  "repository": "prateekiiest/batchCoresets_norm",
+  "schema_version": 1,
+  "tree": "3b641e0a3c74814c06334ff866c0c19778499701",
+  "workflow_run": "https://github.com/prateekiiest/batchCoresets_norm/actions/runs/40918209859"
+}
