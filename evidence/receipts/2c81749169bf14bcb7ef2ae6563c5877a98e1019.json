@@ -1,0 +1,13 @@
+{
+  "commit": "2c81749169bf14bcb7ef2ae6563c5877a98e1019",
+  "commit_message": "Create ai-usage-report.yml",
+  "parents": [
+    "6ef31037c7e51d06b6963ca16b75369c978534e7"
+  ],
+  "receipt_type": "compact-git-commit-receipt",
+  "recorded_at_utc": "2026-10-29T16:19:20.790718+00:00",
+  "repository": "prateekiiest/batchCoresets_norm",
+  "schema_version": 1,
+  "tree": "1a5604d7c3e4c5c38e3453b38fe819042a40c6af",
+  "workflow_run": "https://github.com/prateekiiest/batchCoresets_norm/actions/runs/40910388979"
+}
