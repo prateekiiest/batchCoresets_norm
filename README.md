@@ -129,3 +129,6 @@ For important research milestones, combine activity logging with Git history and
 
 No individual mechanism proves the complete history of intellectual work. The strongest record combines contemporaneous notes, meaningful commits, reproducible experiments, checkpoints, and independently verifiable timestamps.
 
+## AI Detector Suite
+
+A GitHub Actions workflow runs three free/open-source triage tools on pushed commits and pull requests: Houtini ai-detect for added prose, Pangram EditLens (optional; requires accepted Hugging Face model terms and an `HF_TOKEN` secret), and Coderbuds' explicit attribution rules. Findings are warnings for review, not proof of AI authorship. See [the setup, licensing, and limitations guide](docs/ai-detector-suite.md).
