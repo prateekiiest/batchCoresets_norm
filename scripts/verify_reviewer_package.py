@@ -94,6 +94,16 @@ def main():
                     errors.append(f"indexed timestamp proof missing: {name}")
                 elif hashlib.sha256(proof.read_bytes()).hexdigest() != metadata.get("sha256"):
                     errors.append(f"timestamp proof digest mismatch: {name}")
+            aggregate_inventory = data.get("aggregate_files", {})
+            for name, metadata in aggregate_inventory.items():
+                if Path(name).name != name:
+                    errors.append(f"invalid aggregate filename: {name}")
+                    continue
+                aggregate = root / name
+                if not aggregate.is_file():
+                    errors.append(f"indexed aggregate file missing: {name}")
+                elif hashlib.sha256(aggregate.read_bytes()).hexdigest() != metadata.get("sha256") or aggregate.stat().st_size != metadata.get("bytes"):
+                    errors.append(f"aggregate digest/size mismatch: {name}")
         except Exception:
             errors.append("package index is invalid JSON")
     if not index.exists():
