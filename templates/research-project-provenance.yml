@@ -23,6 +23,7 @@ jobs:
           python -m py_compile scripts/verify_macos_provenance.py
           python -m py_compile scripts/export_public_evidence.py
           python -m py_compile scripts/analyze_research_evidence.py
+          python -m py_compile scripts/verify_reviewer_package.py
       - name: Check command-line interfaces
         run: |
           python scripts/macos_provenance.py --help
@@ -30,6 +31,7 @@ jobs:
           python scripts/verify_macos_provenance.py --help
           python scripts/export_public_evidence.py --help
           python scripts/analyze_research_evidence.py --help
+          python scripts/verify_reviewer_package.py --help
       - name: Ensure private local provenance data is not tracked
         shell: bash
         run: |
@@ -53,4 +55,22 @@ jobs:
                   if not isinstance(value, dict):
                       raise SystemExit(f"{path} must contain a JSON object")
                   print(f"Validated {path}")
+          PY
+
+      - name: Validate reviewer manifest schema and package when present
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          schema = json.loads(Path("schemas/reviewer-manifest-v2.schema.json").read_text()) if Path("schemas/reviewer-manifest-v2.schema.json").exists() else None
+          if schema and schema.get("properties", {}).get("schema_version", {}).get("const") != 2:
+              raise SystemExit("Unexpected reviewer manifest schema version")
+          package = Path("public-evidence/reviewer-package")
+          if package.exists():
+              index = json.loads((package / "package-index.json").read_text())
+              for name in index.get("manifest_files", []):
+                  value = json.loads((package / "manifests" / name).read_text())
+                  if value.get("schema_version") != 2:
+                      raise SystemExit(f"Unsupported manifest schema: {name}")
+              print("Reviewer package inventory and manifest versions validated")
           PY
