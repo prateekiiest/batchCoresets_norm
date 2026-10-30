@@ -132,6 +132,10 @@ class Collector:
                 if elapsed-self.last_heartbeat>=60:
                     self.append({"event_type":"collector_heartbeat","evidence_class":"collector_self_report","scan_count":self.scan_count,"uptime_seconds":int(elapsed-self.started_monotonic),"interpretation":"Collector self-reported a heartbeat after a scan; missing heartbeats indicate an observation gap, not its cause."})
                     self.last_heartbeat=elapsed
+                if elapsed-self.last_cold_turkey>=self.cold_turkey_interval:
+                    result=cold_turkey_stats.collect(output_dir=self.store/"cold-turkey")
+                    self.append({"event_type":"cold_turkey_aggregate_updated","evidence_class":"local_aggregate_observed","days":result["days"],"source_count":result["source_count"],"status":result["status"],"interpretation":"Daily aggregate snapshot refreshed; raw identifiers and activity rows are not recorded."})
+                    self.last_cold_turkey=time.monotonic()
                 if elapsed-self.last_manifest>=self.manifest_interval:
                     self.manifest(); self.last_manifest=time.monotonic()
             except Exception as exc:
@@ -140,7 +144,7 @@ class Collector:
             time.sleep(self.interval)
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument("--root",default=".");p.add_argument("--interval",type=int,default=5);p.add_argument("--manifest-hours",type=int,default=6);a=p.parse_args()
-    try:Collector(a.root,a.interval,a.manifest_hours).run()
+    p=argparse.ArgumentParser();p.add_argument("--root",default=".");p.add_argument("--interval",type=int,default=5);p.add_argument("--manifest-hours",type=int,default=6);p.add_argument("--cold-turkey-interval",type=int,default=900);a=p.parse_args()
+    try:Collector(a.root,a.interval,a.manifest_hours,a.cold_turkey_interval).run()
     except KeyboardInterrupt:print("Collector stopped.")
 if __name__=="__main__":main()
