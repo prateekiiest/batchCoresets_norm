@@ -18,6 +18,12 @@ Sanitized periodic manifests use schema_version 2 and are described by schemas/r
 
 The previous-manifest chain uses SHA-256 of the previous manifest's exact serialized bytes, including its final newline. The payload digest is calculated before adding manifest_payload_sha256.
 
+## Additional local signals
+
+The `logs` map may include `launchd_stdout` and `launchd_stderr` digests, plus `cold_turkey_statistics_export` when `.writing-provenance/cold-turkey-statistics-export.json` is present at manifest time. Only SHA-256 and byte size enter the sanitized manifest; the source files are not copied into the reviewer package. Collector heartbeat and error records remain in the private macOS event log, whose digest is represented by `logs.macos`.
+
+Cold Turkey export digests are integrity references to a researcher-supplied local export, not parsed statistics or independent confirmation of blocker enforcement. Reviewers need the original export to inspect its contents, and the researcher should share it only after removing sensitive site/application details.
+
 ## Event records
 
 The local macOS event log is JSON Lines. Each event includes schema, observed_at_utc, event_id, event_type, evidence_class, event-specific metadata, previous_event_hash, and event_hash. Raw logs remain local by default.
