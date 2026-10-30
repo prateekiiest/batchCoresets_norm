@@ -11,6 +11,8 @@ def h(p):
         for b in iter(lambda:f.read(1024*1024),b""):x.update(b)
     return x.hexdigest()
 def main():
+    check=subprocess.run(["python3",str(ROOT/"scripts"/"verify_macos_provenance.py"),"--snapshots"],cwd=ROOT)
+    if check.returncode: raise SystemExit("Private macOS provenance verification failed; export refused.")
     ap=argparse.ArgumentParser();ap.add_argument("--output",default="public-evidence/research-provenance.json");ap.add_argument("--include-paths",action="store_true");a=ap.parse_args()
     events=STORE/"macos-events.jsonl";counts=Counter();first=last=None
     if events.exists():
