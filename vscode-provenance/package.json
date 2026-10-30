@@ -1,7 +1,7 @@
 {
   "name": "batchcoresets-writing-provenance",
   "displayName": "Writing Provenance (Local, Opt-in)",
-  "description": "Privacy-first local editor provenance and self-reported AI assistance.",
+  "description": "Privacy-first local editor provenance with persistent, explicit opt-in.",
   "version": "0.1.0",
   "publisher": "prateekiiest",
   "engines": {
@@ -11,6 +11,7 @@
     "Other"
   ],
   "activationEvents": [
+    "onStartupFinished",
     "onCommand:writingProvenance.enable",
     "onCommand:writingProvenance.disable",
     "onCommand:writingProvenance.verifyLog",
