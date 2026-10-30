@@ -65,6 +65,21 @@ def main():
                     errors.append(f"timestamp proof digest mismatch: {name}")
         except Exception:
             errors.append("package index is invalid JSON")
+    if not index.exists():
+        errors.append("package-index.json is missing")
+    index_proof = root / "package-index.json.ots"
+    if not index_proof.exists():
+        warnings.append("package index has no external timestamp proof; trailing manifest omission cannot be ruled out")
+    elif a.verify_timestamps:
+        ots = shutil.which("ots")
+        if not ots:
+            warnings.append("package-index.json.ots: ots client unavailable")
+        else:
+            result = subprocess.run([ots, "verify", str(index_proof)], capture_output=True, text=True)
+            if result.returncode:
+                warnings.append(f"package-index.json.ots: verification not successful: {(result.stderr or result.stdout).strip()}")
+            else:
+                print("TIMESTAMP PASS: package-index.json.ots")
     for x in errors: print("FAIL:", x)
     for x in warnings: print("WARNING:", x)
     if errors:
