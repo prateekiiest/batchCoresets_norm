@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Sanitized Research Provenance Manifest v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "created_at_utc",
+    "collector_version",
+    "git_head",
+    "previous_manifest_sha256",
+    "logs",
+    "tracked_artifacts_by_extension",
+    "manifest_payload_sha256",
+    "note"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "created_at_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "collector_version": {
+      "type": "string"
+    },
+    "git_head": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "previous_manifest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "logs": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "sha256",
+          "bytes"
+        ],
+        "properties": {
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "tracked_artifacts_by_extension": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "sha256",
+            "bytes"
+          ],
+          "properties": {
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "bytes": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "manifest_payload_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "note": {
+      "type": "string"
+    }
+  }
+}
