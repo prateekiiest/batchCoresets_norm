@@ -24,6 +24,8 @@ on:
       - "scripts/analyze_research_evidence.py"
       - "scripts/verify_macos_provenance.py"
       - "scripts/verify_reviewer_package.py"
+      - "scripts/cold_turkey_stats.py"
+      - "tests/test_cold_turkey_stats.py"
       - "tests/test_reviewer_package.py"
       - "scripts/install_into_project.sh"
       - "vscode-provenance/**"
@@ -61,6 +63,8 @@ jobs:
           python scripts/verify_reviewer_package.py --help
       - name: Test reviewer package verifier
         run: python -m unittest discover -s tests -p "test_reviewer_package.py" -v
+      - name: Test Cold Turkey aggregate collector
+        run: python -m unittest discover -s tests -p "test_cold_turkey_stats.py" -v
       - name: Check installation helper syntax
         run: bash -n scripts/install_into_project.sh
       - name: Check VS Code extension syntax and manifest
