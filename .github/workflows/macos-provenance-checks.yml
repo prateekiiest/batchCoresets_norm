@@ -8,6 +8,7 @@ on:
       - "scripts/export_public_evidence.py"
       - "scripts/verify_macos_provenance.py"
       - "scripts/install_into_project.sh"
+      - "scripts/install_into_project.sh"
       - "vscode-provenance/**"
       - ".github/workflows/macos-provenance-checks.yml"
   pull_request:
@@ -16,6 +17,7 @@ on:
       - "scripts/install_macos_provenance.py"
       - "scripts/export_public_evidence.py"
       - "scripts/verify_macos_provenance.py"
+      - "scripts/install_into_project.sh"
       - "vscode-provenance/**"
       - ".github/workflows/macos-provenance-checks.yml"
   workflow_dispatch:
