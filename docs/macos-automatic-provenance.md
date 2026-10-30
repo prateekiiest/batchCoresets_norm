@@ -27,7 +27,7 @@ python3 scripts/install_macos_provenance.py --uninstall
 
 ## Captured activity
 
-The collector observes saved file states (manuscript, notes, source, configuration and experiment files), local Git HEAD changes, and periodic manifests. It stores private file snapshots and hash-chained event records under `.writing-provenance/`. It skips common dataset/cache/vendor directories and files larger than 25 MiB.
+The collector observes saved file states (manuscript, notes, source, configuration, experiment logs, PDFs and figures), local Git HEAD changes, and periodic manifests. It stores private file snapshots and hash-chained event records under `.writing-provenance/`. It skips common dataset/cache/vendor directories and files larger than 25 MiB.
 
 It does not capture keystrokes, clipboard, screenshots, browser history, prompts, responses, unsaved buffers, thoughts, terminal commands, or experiments' full runtime state. It cannot determine who authored a change or whether AI was used.
 
@@ -39,7 +39,7 @@ Enable existing Cursor hooks with:
 python3 .cursor/hooks/record_provenance.py --enable
 ```
 
-Enable the existing VS Code extension separately. Its consent is local to the extension session/workspace according to its implementation.
+Enable the existing VS Code extension once per workspace using the Command Palette. The explicit opt-in is persisted in that workspace and tracking resumes when the extension activates on subsequent starts; use the disable command to revoke it.
 
 For Overleaf Git synchronization, synchronize the Overleaf project into the local Git working tree being monitored. The collector observes the resulting saved files and Git HEAD. If Overleaf is a separate clone, install the LaunchAgent from that clone too. This collector deliberately does not push or pull automatically and does not store Overleaf credentials. Never place tokens in committed remotes, shell history, or logs.
 
