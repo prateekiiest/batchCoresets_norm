@@ -96,7 +96,12 @@ class Collector:
                         grouped.setdefault(ext,[]).append({"sha256":filehash(p),"bytes":p.stat().st_size})
         except Exception:pass
         for values in grouped.values():values.sort(key=lambda x:(x["sha256"],x["bytes"]))
-        prior=sorted(self.manifests.glob("manifest-*.json"))
+        prior=[]
+        for candidate in self.manifests.glob("manifest-*.json"):
+            try:
+                if json.loads(candidate.read_text(encoding="utf-8")).get("schema_version")==2: prior.append(candidate)
+            except Exception: pass
+        prior=sorted(prior)
         previous=filehash(prior[-1]) if prior else ZERO
         m={"schema_version":2,"created_at_utc":now(),"collector_version":"research-activity-logger/2","git_head":self.state.get("git_head"),"previous_manifest_sha256":previous,"logs":logs,"tracked_artifacts_by_extension":dict(sorted(grouped.items())),"note":"Path-redacted manifest. Hashes describe local observations; they do not establish authorship or complete activity capture."}
         m["manifest_payload_sha256"]=digest(json.dumps(m,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode("utf-8"))
