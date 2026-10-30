@@ -78,9 +78,7 @@ Then open the research project in VS Code and run **Writing Provenance: Initiali
 
 The installer requires internet access once to package the extension through npm. The extension itself makes no network requests and does not upload logs.
 
-Run the installer once for each separate Git working tree you want to monitor. If your paper and code are in the same Git repository, install only once.
-
-The installer copies the runtime scripts into the project, adds `.writing-provenance/` to that project's `.gitignore`, and installs a project-specific background LaunchAgent. It also installs and enables the Cursor hooks when it can do so without overwriting an existing `.cursor/hooks.json`. If that file already exists, the installer leaves it untouched; see [Editor integrations](#editor-integrations).
+Run the installer once for each separate Git working tree you want to monitor. If your paper and code are in the same Git repository, install only once. It replaces the toolkit's named runtime scripts in the target `scripts/` directory; keep local modifications to those same-named files elsewhere before running it. If the project already has `.cursor/hooks.json`, it is left untouched and must be merged manually; see [Editor integrations](#editor-integrations).
 
 ### 3. Confirm that the collector is running
 
