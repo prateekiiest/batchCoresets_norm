@@ -4,11 +4,15 @@ A per-project macOS LaunchAgent runs the collector in the background.
 
 ## Install
 
-From the root of a local Git clone:
+First clone this toolkit, then install its collector into each actual paper/code Git working tree. This copies the four runtime scripts into that project, adds the private evidence directory to its `.gitignore`, and installs a project-specific LaunchAgent:
 
 ```bash
-python3 scripts/install_macos_provenance.py
+git clone -b macos-automatic-provenance https://github.com/prateekiiest/research-activity-logger.git ~/research-activity-logger
+bash ~/research-activity-logger/scripts/install_into_project.sh /absolute/path/to/your/paper-repository
+bash ~/research-activity-logger/scripts/install_into_project.sh /absolute/path/to/your/code-repository
 ```
+
+If paper and code already live in the same Git working tree, run the helper once. To install manually from inside a target project after copying the scripts, run `python3 scripts/install_macos_provenance.py`.
 
 It installs a project-specific LaunchAgent under `~/Library/LaunchAgents/` (the label is derived from the absolute project path), starts immediately, restarts after an unexpected exit, and starts at login. You can install it separately in multiple paper/code Git working trees; each gets its own agent and private evidence directory.
 
