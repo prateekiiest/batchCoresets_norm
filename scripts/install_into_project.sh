@@ -6,6 +6,7 @@ if [[ $# -ne 1 ]]; then
 fi
 SOURCE="$(cd "$(dirname "$0")" && pwd)"
 TARGET="$(cd "$1" && pwd)"
+TOOL_ROOT="$(cd "$SOURCE/.." && pwd)"
 if [[ ! -e "$TARGET/.git" ]]; then
   echo "Target must be a local Git working tree: $TARGET" >&2
   exit 2
@@ -25,7 +26,6 @@ touch "$TARGET/.gitignore"
 if ! grep -qxF '.writing-provenance/' "$TARGET/.gitignore"; then
   printf '\n# Private local research provenance (never commit raw logs or snapshots)\n.writing-provenance/\n' >> "$TARGET/.gitignore"
 fi
-TOOL_ROOT="$(cd "$SOURCE/.." && pwd)"
 if [[ ! -e "$TARGET/.cursor/hooks.json" ]]; then
   mkdir -p "$TARGET/.cursor/hooks"
   cp "$TOOL_ROOT/.cursor/hooks.json" "$TARGET/.cursor/hooks.json"
