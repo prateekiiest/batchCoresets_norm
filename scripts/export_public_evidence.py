@@ -48,7 +48,13 @@ def main():
         proof=source.with_suffix(source.suffix+".ots")
         if proof.is_file():
             shutil.copyfile(proof,md/proof.name); proofs[proof.name]={"sha256":h(proof),"bytes":proof.stat().st_size}
-    aggregate_files={}\n    aggregate=STORE/"cold-turkey"/"daily-aggregates.json"\n    if aggregate.is_file():\n        target=package/"cold-turkey-daily-aggregates.json"\n        shutil.copyfile(aggregate,target)\n        aggregate_files[target.name]={"sha256":h(target),"bytes":target.stat().st_size}\n    index={"package_schema_version":1,"generated_at_utc":datetime.now(timezone.utc).isoformat(),"manifest_files":included,"timestamp_proofs":proofs,"aggregate_files":aggregate_files,"privacy":"Only path-redacted manifests, sanitized daily aggregates, and matching OpenTimestamps proof files are included; raw logs and snapshots are excluded."}
+    aggregate_files={}
+    aggregate=STORE/"cold-turkey"/"daily-aggregates.json"
+    if aggregate.is_file():
+        target=package/"cold-turkey-daily-aggregates.json"
+        shutil.copyfile(aggregate,target)
+        aggregate_files[target.name]={"sha256":h(target),"bytes":target.stat().st_size}
+    index={"package_schema_version":1,"generated_at_utc":datetime.now(timezone.utc).isoformat(),"manifest_files":included,"timestamp_proofs":proofs,"aggregate_files":aggregate_files,"privacy":"Only path-redacted manifests, sanitized daily aggregates, and matching OpenTimestamps proof files are included; raw logs and snapshots are excluded."}
     index_path=package/"package-index.json"; index_path.write_text(json.dumps(index,indent=2,sort_keys=True)+"\n")
     ots=shutil.which("ots")
     if ots:
