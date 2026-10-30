@@ -9,6 +9,7 @@ on:
       - "scripts/analyze_research_evidence.py"
       - "scripts/verify_macos_provenance.py"
       - "scripts/verify_reviewer_package.py"
+      - "scripts/diagnose_cold_turkey.py"
       - "tests/test_reviewer_package.py"
       - "scripts/install_into_project.sh"
       - "vscode-provenance/**"
@@ -46,6 +47,7 @@ jobs:
           python -m py_compile scripts/analyze_research_evidence.py
           python -m py_compile scripts/verify_macos_provenance.py
           python -m py_compile scripts/verify_reviewer_package.py
+          python -m py_compile scripts/diagnose_cold_turkey.py
       - name: Check command-line help
         run: |
           python scripts/macos_provenance.py --help
