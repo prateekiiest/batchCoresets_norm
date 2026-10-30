@@ -10,6 +10,7 @@ import json
 import os
 import sqlite3
 import tempfile
+from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import quote
@@ -66,6 +67,7 @@ def aggregate_one(db_path, table_specs, daily):
             for table, (metric, operation) in table_specs.items():
                 if table not in names:
                     result["tables"][table] = "missing_table"
+                    result["status"] = "partial"
                     continue
                 # The SQL identifiers come only from this fixed allowlist.
                 if operation == "sum":
@@ -82,6 +84,7 @@ def aggregate_one(db_path, table_specs, daily):
                     result["tables"][table] = "aggregated"
                 except sqlite3.Error as exc:
                     result["tables"][table] = "query_error:" + type(exc).__name__
+                    result["status"] = "partial"
     except (sqlite3.Error, OSError) as exc:
         result["status"] = "read_error:" + type(exc).__name__
     return result
