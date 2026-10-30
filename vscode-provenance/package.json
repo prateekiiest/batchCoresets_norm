@@ -15,11 +15,16 @@
     "onCommand:writingProvenance.enable",
     "onCommand:writingProvenance.disable",
     "onCommand:writingProvenance.verifyLog",
-    "onCommand:writingProvenance.status"
+    "onCommand:writingProvenance.status",
+    "onCommand:writingProvenance.initialize"
   ],
   "main": "./extension.js",
   "contributes": {
     "commands": [
+      {
+        "command": "writingProvenance.initialize",
+        "title": "Writing Provenance: Initialize This Research Workspace"
+      },
       {
         "command": "writingProvenance.enable",
         "title": "Writing Provenance: Enable Local Tracking"
