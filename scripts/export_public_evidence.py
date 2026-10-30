@@ -35,7 +35,12 @@ def main():
     out=ROOT/a.output;out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(result,indent=2,sort_keys=True)+"\n")
     package=out.parent/"reviewer-package"; md=package/"manifests"; md.mkdir(parents=True,exist_ok=True)
     for stale in md.glob("manifest-*"): stale.unlink()
-    manifest_files=sorted((STORE/"manifests").glob("manifest-*.json")) if (STORE/"manifests").exists() else []
+    manifest_files=[]
+    if (STORE/"manifests").exists():
+        for candidate in sorted((STORE/"manifests").glob("manifest-*.json")):
+            try:
+                if json.loads(candidate.read_text(encoding="utf-8")).get("schema_version")==2: manifest_files.append(candidate)
+            except Exception: pass
     included=[]; proofs={}
     for source in manifest_files:
         shutil.copyfile(source,md/source.name); included.append(source.name)
