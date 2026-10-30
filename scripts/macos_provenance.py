@@ -88,7 +88,7 @@ class Collector:
         grouped={}
         try:
             r=subprocess.run(["git","ls-files","-z"],cwd=self.root,capture_output=True,check=True)
-            for n in r.stdout.decode().split("\\0"):
+            for n in r.stdout.decode().split("\0"):
                 if n:
                     p=self.root/n
                     if p.is_file() and not p.is_symlink() and p.stat().st_size<=MAX_BYTES:
@@ -101,7 +101,7 @@ class Collector:
         m={"schema_version":2,"created_at_utc":now(),"collector_version":"research-activity-logger/2","git_head":self.state.get("git_head"),"previous_manifest_sha256":previous,"logs":logs,"tracked_artifacts_by_extension":dict(sorted(grouped.items())),"note":"Path-redacted manifest. Hashes describe local observations; they do not establish authorship or complete activity capture."}
         m["manifest_payload_sha256"]=digest(json.dumps(m,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode("utf-8"))
         out=self.manifests/f"manifest-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S.%fZ')}.json"
-        out.write_text(json.dumps(m,sort_keys=True,indent=2,ensure_ascii=False)+"\\n")
+        out.write_text(json.dumps(m,sort_keys=True,indent=2,ensure_ascii=False)+"\n")
         try:out.chmod(0o600)
         except OSError:pass
         self.append({"event_type":"manifest_created","evidence_class":"local_manifest","sha256":filehash(out),"interpretation":"Path-redacted periodic manifest; its local creation time is not independently trusted."})
