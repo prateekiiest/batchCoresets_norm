@@ -12,7 +12,7 @@ if [[ ! -e "$TARGET/.git" ]]; then
   exit 2
 fi
 mkdir -p "$TARGET/scripts" "$TARGET/.github/workflows" "$TARGET/docs/provenance" "$TARGET/schemas"
-for name in macos_provenance.py install_macos_provenance.py verify_macos_provenance.py export_public_evidence.py analyze_research_evidence.py verify_reviewer_package.py; do
+for name in macos_provenance.py cold_turkey_stats.py install_macos_provenance.py verify_macos_provenance.py export_public_evidence.py analyze_research_evidence.py verify_reviewer_package.py; do
   cp "$SOURCE/$name" "$TARGET/scripts/$name"
 done
 cp "$TOOL_ROOT/docs/reviewer-guide.md" "$TARGET/docs/provenance/REVIEWER_GUIDE.md"
