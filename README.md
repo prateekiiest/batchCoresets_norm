@@ -1,3 +1,31 @@
+## Automatic macOS research provenance
+
+For a background collector on macOS, see [the installation guide](docs/macos-automatic-provenance.md). From a local Git working tree, run:
+
+```bash
+python3 scripts/install_macos_provenance.py
+```
+
+The LaunchAgent starts at login, restarts after an unexpected exit, and records saved file states, local Git HEAD changes, and six-hour artifact manifests under the private, Git-ignored `.writing-provenance/` directory. It complements the existing Cursor hooks and VS Code extension. Enable Cursor hooks once with `python3 .cursor/hooks/record_provenance.py --enable`; enable the VS Code extension separately.
+
+Overleaf Git synchronization is captured only after changes are synchronized into the monitored local Git working tree. The collector does not automatically push/pull or store Overleaf credentials.
+
+Verify local event-chain and snapshot integrity:
+
+```bash
+python3 scripts/verify_macos_provenance.py --snapshots
+```
+
+Generate sanitized reviewer evidence (no raw logs or snapshots):
+
+```bash
+python3 scripts/export_public_evidence.py
+```
+
+Keep raw logs and snapshots private. A local collector is not tamper-proof against the Mac owner and does not prove authorship, complete research activity, or absence of AI use. See the installation guide for coverage and limitations.
+
+---
+
 # Research Activity Logging and AI-Content Triage
 
 Utilities for maintaining a contemporaneous record of research-draft changes and running lightweight, non-blocking AI-content triage checks in GitHub Actions.
@@ -159,7 +187,7 @@ Coderbuds checks explicit attribution rules against available commit messages/au
 1. Sign in to Hugging Face and visit the [EditLens model page](https://huggingface.co/pangram/editlens_roberta-large).
 2. Review the access conditions and license, then request/accept gated access if the terms are suitable for your use.
 3. Create a read token in [Hugging Face token settings](https://huggingface.co/settings/tokens).
-4. In this repository, open **Settings → Secrets and variables → Actions → New repository secret** (or visit [Actions secrets](https://github.com/prateekiiest/batchCoresets_norm/settings/secrets/actions)).
+4. In this repository, open **Settings → Secrets and variables → Actions → New repository secret** (or visit [Actions secrets](https://github.com/prateekiiest/research-activity-logger/settings/secrets/actions)).
 5. Set the secret name to `HF_TOKEN` and paste the token value into GitHub. **Never commit the token or paste it into an issue, log, or chat.**
 
 Without a token, EditLens is skipped and the other checks can continue. A qualifying text sample and an accepted model/token are separate requirements: a run may skip EditLens because there is no qualifying added prose, even when a secret exists.
@@ -173,7 +201,7 @@ Without a token, EditLens is skipped and the other checks can continue. A qualif
 - The workflow is non-blocking: detector findings alone do not fail a build, and reports are not committed back to the repository.
 - It does not call paid detection APIs.
 
-The Lukkinen integration is experimental because its model card describes a custom mean-pooling architecture; the workflow records load/inference errors rather than treating failures as human-written results. Style statistics are descriptive only. See the [detailed detector guide](docs/ai-detector-suite.md) and the [GitHub Actions runs](https://github.com/prateekiiest/batchCoresets_norm/actions).
+The Lukkinen integration is experimental because its model card describes a custom mean-pooling architecture; the workflow records load/inference errors rather than treating failures as human-written results. Style statistics are descriptive only. See the [detailed detector guide](docs/ai-detector-suite.md) and the [GitHub Actions runs](https://github.com/prateekiiest/research-activity-logger/actions).
 
 ## Privacy, limitations, and licensing
 
