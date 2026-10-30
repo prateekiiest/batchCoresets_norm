@@ -54,10 +54,10 @@ class ColdTurkeyAggregateTests(unittest.TestCase):
             row = payload["daily_aggregates"][0]
             self.assertEqual(row["browser_seconds"], 150)
             self.assertEqual(row["browser_strict_seconds"], 10)
-            self.assertEqual(row["browser_blocked_events"], 1)
+            self.assertEqual(row["browser_blocked_rows"], 1)
             self.assertEqual(row["app_seconds"], 240)
             self.assertEqual(row["app_strict_seconds"], 20)
-            self.assertEqual(row["app_blocked_events"], 1)
+            self.assertEqual(row["app_blocked_rows"], 1)
             serialized = (out / "daily-aggregates.json").read_text() + (out / "daily-aggregates.csv").read_text()
             for secret in ("private.example", "secret.example", "strict.example",
                            "blocked.example", "private window title", "private-user",
