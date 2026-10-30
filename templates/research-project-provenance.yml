@@ -1,0 +1,56 @@
+name: Research provenance checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  provenance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile installed provenance scripts
+        run: |
+          python -m py_compile scripts/macos_provenance.py
+          python -m py_compile scripts/install_macos_provenance.py
+          python -m py_compile scripts/verify_macos_provenance.py
+          python -m py_compile scripts/export_public_evidence.py
+          python -m py_compile scripts/analyze_research_evidence.py
+      - name: Check command-line interfaces
+        run: |
+          python scripts/macos_provenance.py --help
+          python scripts/install_macos_provenance.py --help
+          python scripts/verify_macos_provenance.py --help
+          python scripts/export_public_evidence.py --help
+          python scripts/analyze_research_evidence.py --help
+      - name: Ensure private local provenance data is not tracked
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git ls-files -z | python -c 'import sys; paths=sys.stdin.buffer.read().decode().split("\0"); bad=[p for p in paths if p.startswith(".writing-provenance/") or p.endswith(".jsonl") and ".writing-provenance" in p]; print("\n".join(bad)); sys.exit(bool(bad))'; then
+            echo "No private provenance logs are tracked."
+          else
+            echo "::error::Private provenance data is tracked by Git. Remove it from the index and keep it local."
+            exit 1
+          fi
+      - name: Validate sanitized evidence files when present
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for path in (Path("public-evidence/research-evidence-audit.json"),
+                       Path("public-evidence/research-provenance.json")):
+              if path.exists():
+                  with path.open(encoding="utf-8") as f:
+                      value = json.load(f)
+                  if not isinstance(value, dict):
+                      raise SystemExit(f"{path} must contain a JSON object")
+                  print(f"Validated {path}")
+          PY
