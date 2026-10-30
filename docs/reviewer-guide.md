@@ -1,5 +1,11 @@
 # Reviewer guide: sanitized research provenance package
 
+## LaunchAgent and Cold Turkey context
+
+The local macOS event log may include collector-start, periodic self-reported heartbeat, and caught-error records. These are collector self-reports, not an independent monitor of `launchd`; a missing heartbeat marks an observation gap whose cause is unknown. The periodic manifest hashes available LaunchAgent stdout/stderr logs without including their contents.
+
+If Cold Turkey Blocker Statistics is enabled, export the visible statistics from its Statistics tab and, if you want the export's exact bytes represented in a later manifest, place a copy at `.writing-provenance/cold-turkey-statistics-export.json`. The collector records only that file's SHA-256 and byte size in the sanitized manifest; it does not parse or publish the export. Keep the original export private because it may contain website, application, or window-title details. Cold Turkey's own guide says statistics are stored locally and that visible statistics can be exported. A hash establishes the identity of the supplied export bytes, not that the statistics are complete or that a block was continuously enforced.
+
 The sanitized package is produced under public-evidence/reviewer-package/.
 
 ## Contents
