@@ -1,0 +1,30 @@
+name: VS Code extension package
+on:
+  push:
+    branches: [main]
+    paths:
+      - "vscode-provenance/**"
+      - ".github/workflows/vscode-extension-package.yml"
+  pull_request:
+    paths:
+      - "vscode-provenance/**"
+      - ".github/workflows/vscode-extension-package.yml"
+  workflow_dispatch:
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check extension syntax
+        run: node --check vscode-provenance/extension.js
+      - name: Package VSIX
+        working-directory: vscode-provenance
+        run: npx --yes @vscode/vsce package --no-dependencies --out ../writing-provenance.vsix
+      - uses: actions/upload-artifact@v4
+        with:
+          name: writing-provenance-vsix
+          path: writing-provenance.vsix
+          if-no-files-found: error
