@@ -1,0 +1,69 @@
+# Automatic macOS research provenance
+
+A per-project macOS LaunchAgent runs the collector in the background.
+
+## Install
+
+From the root of a local Git clone:
+
+```bash
+python3 scripts/install_macos_provenance.py
+```
+
+It installs `~/Library/LaunchAgents/org.prateek.research-activity-logger.plist`, starts immediately, restarts after an unexpected exit, and starts at login.
+
+Check status:
+
+```bash
+launchctl print gui/$(id -u)/org.prateek.research-activity-logger
+tail -f .writing-provenance/launchd/stderr.log
+```
+
+Uninstall without deleting evidence:
+
+```bash
+python3 scripts/install_macos_provenance.py --uninstall
+```
+
+## Captured activity
+
+The collector observes saved file states (manuscript, notes, source, configuration and experiment files), local Git HEAD changes, and periodic manifests. It stores private file snapshots and hash-chained event records under `.writing-provenance/`. It skips common dataset/cache/vendor directories and files larger than 25 MiB.
+
+It does not capture keystrokes, clipboard, screenshots, browser history, prompts, responses, unsaved buffers, thoughts, terminal commands, or experiments' full runtime state. It cannot determine who authored a change or whether AI was used.
+
+## Cursor, VS Code and Overleaf
+
+Enable existing Cursor hooks with:
+
+```bash
+python3 .cursor/hooks/record_provenance.py --enable
+```
+
+Enable the existing VS Code extension separately. Its consent is local to the extension session/workspace according to its implementation.
+
+For Overleaf Git synchronization, synchronize the Overleaf project into the local Git working tree being monitored. The collector observes the resulting saved files and Git HEAD. If Overleaf is a separate clone, install the LaunchAgent from that clone too. This collector deliberately does not push or pull automatically and does not store Overleaf credentials. Never place tokens in committed remotes, shell history, or logs.
+
+## Public reviewer evidence
+
+Generate a sanitized manifest:
+
+```bash
+python3 scripts/export_public_evidence.py
+```
+
+By default it groups artifact hashes by extension and omits paths. Use `--include-paths` only if reviewers need to verify individual files. The exporter does not copy raw logs or snapshots. Review output before publication. Keep `.writing-provenance/` private.
+
+## External timestamping
+
+A local manifest is not an independent timestamp. To anchor a chosen manifest:
+
+```bash
+python3 -m pip install --user opentimestamps-client
+ots stamp .writing-provenance/manifests/ACTUAL-MANIFEST.json
+```
+
+Preserve the JSON and matching `.ots` proof off the Mac. A proof may initially be pending; later run `ots upgrade FILE.json.ots` and `ots verify FILE.json.ots`.
+
+## Limitations
+
+This is a user-level service and can be stopped or altered by the Mac owner. Polling can miss intermediate changes that occur and revert between scans. Overleaf events are visible only after synchronization. This is supporting evidence, not tamper-proof monitoring, authorship proof, or proof that AI was never used.
