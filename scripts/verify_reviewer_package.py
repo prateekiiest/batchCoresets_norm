@@ -46,7 +46,7 @@ def main():
             else:
                 result = subprocess.run([ots, "verify", str(proof)], capture_output=True, text=True)
                 if result.returncode:
-                    warnings.append(f"{proof.name}: verification not successful: {(result.stderr or result.stdout).strip()}")
+                    errors.append(f"{proof.name}: timestamp verification failed: {(result.stderr or result.stdout).strip()}")
                 else:
                     print(f"TIMESTAMP PASS: {proof.name}")
     index = root / "package-index.json"
@@ -77,7 +77,7 @@ def main():
         else:
             result = subprocess.run([ots, "verify", str(index_proof)], capture_output=True, text=True)
             if result.returncode:
-                warnings.append(f"package-index.json.ots: verification not successful: {(result.stderr or result.stdout).strip()}")
+                errors.append(f"package-index.json.ots: timestamp verification failed: {(result.stderr or result.stdout).strip()}")
             else:
                 print("TIMESTAMP PASS: package-index.json.ots")
     for x in errors: print("FAIL:", x)
@@ -88,6 +88,8 @@ def main():
     print(f"RESULT: PASS (offline manifest integrity; {len(manifests)} manifests, {len(warnings)} warnings)")
     if not a.verify_timestamps:
         print("Timestamp proofs were not checked. Re-run with --verify-timestamps when ots is installed.")
+    if a.verify_timestamps and warnings:
+        print("TIMESTAMP CHECK INCOMPLETE: see warnings above; do not claim all timestamps verified.")
     print("PASS does not establish completeness, authorship, or absence of AI use.")
     return 0
 
