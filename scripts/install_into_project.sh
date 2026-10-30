@@ -6,19 +6,26 @@ if [[ $# -ne 1 ]]; then
 fi
 SOURCE="$(cd "$(dirname "$0")" && pwd)"
 TARGET="$(cd "$1" && pwd)"
+TOOL_ROOT="$(cd "$SOURCE/.." && pwd)"
 if [[ ! -e "$TARGET/.git" ]]; then
   echo "Target must be a local Git working tree: $TARGET" >&2
   exit 2
 fi
-mkdir -p "$TARGET/scripts"
+mkdir -p "$TARGET/scripts" "$TARGET/.github/workflows"
 for name in macos_provenance.py install_macos_provenance.py verify_macos_provenance.py export_public_evidence.py analyze_research_evidence.py; do
   cp "$SOURCE/$name" "$TARGET/scripts/$name"
 done
+WORKFLOW="$TARGET/.github/workflows/research-provenance.yml"
+if [[ ! -e "$WORKFLOW" ]]; then
+  cp "$TOOL_ROOT/templates/research-project-provenance.yml" "$WORKFLOW"
+  echo "Installed GitHub Actions workflow: .github/workflows/research-provenance.yml"
+else
+  echo "Existing $WORKFLOW found; not overwriting it. Review the template at $TOOL_ROOT/templates/research-project-provenance.yml and merge manually if desired."
+fi
 touch "$TARGET/.gitignore"
 if ! grep -qxF '.writing-provenance/' "$TARGET/.gitignore"; then
   printf '\n# Private local research provenance (never commit raw logs or snapshots)\n.writing-provenance/\n' >> "$TARGET/.gitignore"
 fi
-TOOL_ROOT="$(cd "$SOURCE/.." && pwd)"
 if [[ ! -e "$TARGET/.cursor/hooks.json" ]]; then
   mkdir -p "$TARGET/.cursor/hooks"
   cp "$TOOL_ROOT/.cursor/hooks.json" "$TARGET/.cursor/hooks.json"
