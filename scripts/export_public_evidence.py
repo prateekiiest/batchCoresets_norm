@@ -36,14 +36,14 @@ def main():
     package=out.parent/"reviewer-package"; md=package/"manifests"; md.mkdir(parents=True,exist_ok=True)
     for stale in md.glob("manifest-*"): stale.unlink()
     manifest_files=sorted((STORE/"manifests").glob("manifest-*.json")) if (STORE/"manifests").exists() else []
-    included=[]; proofs=[]
+    included=[]; proofs={}
     for source in manifest_files:
         shutil.copyfile(source,md/source.name); included.append(source.name)
         proof=source.with_suffix(source.suffix+".ots")
         if proof.is_file():
-            shutil.copyfile(proof,md/proof.name); proofs.append(proof.name)
-    index={"package_schema_version":1,"generated_at_utc":datetime.now(timezone.utc).isoformat(),"manifest_files":included,"timestamp_proof_files":proofs,"privacy":"Only path-redacted manifests and matching OpenTimestamps proof files are included; raw logs and snapshots are excluded."}
+            shutil.copyfile(proof,md/proof.name); proofs[proof.name]={"sha256":h(proof),"bytes":proof.stat().st_size}
+    index={"package_schema_version":1,"generated_at_utc":datetime.now(timezone.utc).isoformat(),"manifest_files":included,"timestamp_proofs":proofs,"privacy":"Only path-redacted manifests and matching OpenTimestamps proof files are included; raw logs and snapshots are excluded."}
     (package/"package-index.json").write_text(json.dumps(index,indent=2,sort_keys=True)+"\n")
-    (package/"README.md").write_text("# Sanitized reviewer package\n\nRun python3 scripts/verify_reviewer_package.py public-evidence/reviewer-package for offline manifest integrity checks. Add --verify-timestamps to invoke OpenTimestamps verification when the ots client is installed. See docs/reviewer-guide.md for interpretation and limitations. This package excludes raw logs, snapshots, prompts, responses, document contents, usernames, and paths.\n")
+    (package/"README.md").write_text("# Sanitized reviewer package\n\nRun python3 scripts/verify_reviewer_package.py public-evidence/reviewer-package for offline manifest integrity checks. Add --verify-timestamps to invoke OpenTimestamps verification when the ots client is installed. See docs/provenance/REVIEWER_GUIDE.md for interpretation and limitations. This package excludes raw logs, snapshots, prompts, responses, document contents, usernames, and paths.\n")
     print("Wrote",out.relative_to(ROOT));print("Wrote",package.relative_to(ROOT));print("Inspect before publishing.")
 if __name__=="__main__":main()
