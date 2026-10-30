@@ -78,6 +78,32 @@ Then open the research project in VS Code and run **Writing Provenance: Initiali
 
 The installer requires internet access once to package the extension through npm. The extension itself makes no network requests and does not upload logs.
 
+### 3. GitHub Actions setup in each research repository
+
+The one-command installer also installs a project-level GitHub Actions workflow at:
+
+```text
+.github/workflows/research-provenance.yml
+```
+
+It installs this workflow only when that path does not already exist. If you already have a workflow with that name, it is preserved; review the template at [templates/research-project-provenance.yml](templates/research-project-provenance.yml) and merge the relevant checks manually.
+
+After installation, commit and push the workflow and the supplied project scripts from your research repository:
+
+```bash
+git status
+git add .github/workflows scripts .gitignore
+git commit -m "Set up research provenance tracking"
+git push
+```
+
+Then open the research repository on GitHub and select **Actions** to inspect the `Research provenance` workflow run. It runs on pushes, pull requests, and manual dispatch. You can also start it manually from the workflow page.
+
+The workflow checks that the installed Python scripts compile and expose their command-line help, guards against accidentally tracking private `.writing-provenance/` records, and validates supported sanitized JSON evidence files when present.
+
+**Important scope limitation:** GitHub-hosted runners cannot access your Mac's local VS Code buffers, LaunchAgent, or ignored `.writing-provenance/` event logs. The workflow validates repository tooling and committed/sanitized artifacts; it does not verify local activity, establish that collection was continuously running, or prove that AI was or was not used.
+
+
 Run the installer once for each separate Git working tree you want to monitor. If your paper and code are in the same Git repository, install only once. It replaces the toolkit's named runtime scripts in the target `scripts/` directory; keep local modifications to those same-named files elsewhere before running it. If the project already has `.cursor/hooks.json`, it is left untouched and must be merged manually; see [Editor integrations](#editor-integrations).
 
 ### 3. Confirm that the collector is running
@@ -256,6 +282,12 @@ scripts/                 Collectors, installers, verifiers, exporters, analyzers
 docs/                    Setup and usage guides
 vscode-provenance/       Optional VS Code extension
 ```
+
+## AI-use disclosure for this repository
+
+**AI assistance was used in developing this project.** The code for the setup and automation workflows, GitHub Actions configuration, scripts, and VS Code integration was developed with AI assistance. AI tools contributed to code generation and implementation; the resulting code and documentation should therefore not be represented as entirely unaided human-written work. The project maintainer remains responsible for reviewing, testing, maintaining, and accurately describing the behavior and limitations of the software.
+
+This disclosure concerns the development of the toolkit itself. It is separate from any AI-use disclosure that a researcher may need to make about the research conducted in a repository monitored by this toolkit.
 
 ## Privacy, scope, and limitations
 
