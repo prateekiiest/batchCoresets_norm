@@ -12,7 +12,6 @@ LOGS={
  "macOS filesystem collector":(STORE/"macos-events.jsonl","sorted"),
  "Cursor hooks":(STORE/"cursor-events.jsonl","sorted"),
  "VS Code extension":(STORE/"vscode-events.jsonl","insertion"),
- "legacy editor hooks":(STORE/"events.jsonl","sorted"),
 }
 
 def digest(data): return hashlib.sha256(data).hexdigest()
