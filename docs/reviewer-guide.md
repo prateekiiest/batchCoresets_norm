@@ -8,6 +8,12 @@ If Cold Turkey Blocker Statistics is enabled, export the visible statistics from
 
 The sanitized package is produced under public-evidence/reviewer-package/.
 
+## Cold Turkey daily aggregates
+
+When the macOS collector is running, it refreshes `.writing-provenance/cold-turkey/daily-aggregates.json` and `.csv` every 15 minutes. It reads the `stats` / `statsStrict` and `statsApp` / `statsAppStrict` tables from the local Cold Turkey databases using SQLite read-only mode, which can see committed WAL records. It retains daily sums of seconds and counts of blocked rows only. Domain, application/file, title, and user columns are not selected. Title-level tables and `statsBlockedTime` are excluded because their semantics are not validated. Regular and strict-mode totals are kept separate and must not be added together without understanding the product's mode semantics.
+
+The sanitized reviewer package includes `cold-turkey-daily-aggregates.json` when available; its hash and size are listed in `package-index.json` and checked by the offline verifier. The file contains dates, daily sums, and blocked-row counts only. These are application-reported statistics, not independent proof that blocking was continuously enforced.
+
 ## Contents
 
 - manifests/manifest-*.json: periodic path-redacted manifests. Each contains a UTC observation time, locally observed Git HEAD, hashes and sizes of available event logs, and tracked-artifact hashes grouped by extension. Filenames and directory paths are omitted.

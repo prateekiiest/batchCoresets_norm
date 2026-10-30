@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Background macOS collector for saved research files and Git HEAD changes."""
 import argparse, hashlib, json, os, shutil, subprocess, time, uuid
+import cold_turkey_stats
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -18,7 +19,7 @@ def filehash(p):
     return h.hexdigest()
 
 class Collector:
-    def __init__(self,root,interval,hours):
+    def __init__(self,root,interval,hours,cold_turkey_interval):
         self.root=Path(root).resolve(); self.store=self.root/".writing-provenance"
         self.snap=self.store/"snapshots"; self.events=self.store/"macos-events.jsonl"
         self.statefile=self.store/"macos-state.json"; self.manifests=self.store/"manifests"
@@ -29,6 +30,7 @@ class Collector:
         self.state=json.loads(self.statefile.read_text()) if self.statefile.exists() else {"files":{},"git_head":None}
         self.interval=max(2,interval); self.manifest_interval=max(1,hours)*3600; self.last_manifest=0
         self.started_monotonic=time.monotonic(); self.last_heartbeat=0; self.scan_count=0
+        self.cold_turkey_interval=max(60,cold_turkey_interval); self.last_cold_turkey=0
 
     def append(self,fields):
         prev=ZERO
@@ -84,7 +86,7 @@ class Collector:
 
     def manifest(self):
         logs={}
-        for name,p in (("macos",self.events),("cursor",self.store/"cursor-events.jsonl"),("vscode",self.store/"vscode-events.jsonl"),("legacy",self.store/"events.jsonl"),("launchd_stdout",self.store/"launchd"/"stdout.log"),("launchd_stderr",self.store/"launchd"/"stderr.log"),("cold_turkey_statistics_export",self.store/"cold-turkey-statistics-export.json")):
+        for name,p in (("macos",self.events),("cursor",self.store/"cursor-events.jsonl"),("vscode",self.store/"vscode-events.jsonl"),("legacy",self.store/"events.jsonl"),("launchd_stdout",self.store/"launchd"/"stdout.log"),("launchd_stderr",self.store/"launchd"/"stderr.log"),("cold_turkey_statistics_export",self.store/"cold-turkey-statistics-export.json"),("cold_turkey_daily_json",self.store/"cold-turkey"/"daily-aggregates.json"),("cold_turkey_daily_csv",self.store/"cold-turkey"/"daily-aggregates.csv")):
             if p.is_file():logs[name]={"sha256":filehash(p),"bytes":p.stat().st_size}
         grouped={}
         try:
@@ -130,6 +132,10 @@ class Collector:
                 if elapsed-self.last_heartbeat>=60:
                     self.append({"event_type":"collector_heartbeat","evidence_class":"collector_self_report","scan_count":self.scan_count,"uptime_seconds":int(elapsed-self.started_monotonic),"interpretation":"Collector self-reported a heartbeat after a scan; missing heartbeats indicate an observation gap, not its cause."})
                     self.last_heartbeat=elapsed
+                if elapsed-self.last_cold_turkey>=self.cold_turkey_interval:
+                    result=cold_turkey_stats.collect(output_dir=self.store/"cold-turkey")
+                    self.append({"event_type":"cold_turkey_aggregate_updated","evidence_class":"local_aggregate_observed","days":result["days"],"source_count":result["source_count"],"status":result["status"],"interpretation":"Daily aggregate snapshot refreshed; raw identifiers and activity rows are not recorded."})
+                    self.last_cold_turkey=time.monotonic()
                 if elapsed-self.last_manifest>=self.manifest_interval:
                     self.manifest(); self.last_manifest=time.monotonic()
             except Exception as exc:
@@ -138,7 +144,7 @@ class Collector:
             time.sleep(self.interval)
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument("--root",default=".");p.add_argument("--interval",type=int,default=5);p.add_argument("--manifest-hours",type=int,default=6);a=p.parse_args()
-    try:Collector(a.root,a.interval,a.manifest_hours).run()
+    p=argparse.ArgumentParser();p.add_argument("--root",default=".");p.add_argument("--interval",type=int,default=5);p.add_argument("--manifest-hours",type=int,default=6);p.add_argument("--cold-turkey-interval",type=int,default=900);a=p.parse_args()
+    try:Collector(a.root,a.interval,a.manifest_hours,a.cold_turkey_interval).run()
     except KeyboardInterrupt:print("Collector stopped.")
 if __name__=="__main__":main()
