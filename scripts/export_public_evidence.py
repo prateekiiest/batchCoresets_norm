@@ -41,6 +41,7 @@ def main():
             try:
                 if json.loads(candidate.read_text(encoding="utf-8")).get("schema_version")==2: manifest_files.append(candidate)
             except Exception: pass
+    if not manifest_files: raise SystemExit("No sanitized v2 manifests found. Keep the collector running until it creates a six-hour manifest, then export again.")
     included=[]; proofs={}
     for source in manifest_files:
         shutil.copyfile(source,md/source.name); included.append(source.name)
