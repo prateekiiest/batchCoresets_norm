@@ -6,11 +6,14 @@ Research is more than the final paper or the final Git commit. Ideas evolve thro
 
 This project helps create a contemporaneous record of that work with as little manual bookkeeping as possible. It combines background file and Git observation with optional editor integrations, integrity checks, and reports that summarize the evidence in a form that can be reviewed and shared deliberately.
 
-The goal is **not** to judge how someone writes or to replace normal research practice. The goal is to make the development of research artifacts easier to document: what changed, when the system observed it, how recorded artifacts relate to Git history, and what evidence can be independently checked.
+The goal is not only to preserve how research artifacts evolved, but also to support **transparent disclosure of AI use in research**. When AI tools are used, researchers should be able to describe that use honestly and, where possible, support the description with contemporaneous records. This toolkit aims to make relevant activity easier to document rather than relying entirely on recollection after a paper is complete.
+
+The goal is not to judge how someone writes or to replace normal research practice. The goal is to make the development of research artifacts easier to document: what changed, when the system observed it, which supported editor or AI-tool events were recorded, how recorded artifacts relate to Git history, and what evidence can be independently checked.
 
 ## What this project helps you do
 
 - **Record research activity automatically.** Observe saved manuscript, source-code, configuration, notes, and experiment-artifact changes while you work.
+- **Support AI-use transparency.** Record supported editor events and surface potential AI-content signals as prompts for review and disclosure, not as definitive authorship judgments.
 - **Keep a local history of artifact states.** Store hashes, snapshots, event records, and periodic manifests in a project-local evidence directory.
 - **Connect activity to version control.** Record observed local Git HEAD changes alongside file activity.
 - **Capture supported editor events.** Optionally record supported Cursor events and VS Code buffer-change metadata.
@@ -152,6 +155,16 @@ The macOS collector periodically observes saved files in the research project, r
 The evidence analyzer checks available event chains and snapshot hashes, summarizes recorded activity, and reports supported editor events. Its deterministic audit runs locally. The optional AI review described below is a separate, explicit step.
 
 For more detail about installation, captured activity, Overleaf synchronization, external timestamping, and service management, see the [macOS automatic provenance guide](docs/macos-automatic-provenance.md).
+
+## AI-use transparency: what we are trying to establish
+
+A core motivation for this project is to help researchers answer an increasingly important question: **Was AI used during the research or writing process, and if so, how?**
+
+We want to make it easier to document relevant AI-assisted activity while research is happening, rather than treating AI-use disclosure as an afterthought. Depending on the tools and integrations enabled, the evidence may include supported editor or agent events, timestamps, artifact changes, version-control history, and signals from optional AI-content analysis. These records can help a researcher reconstruct and explain their workflow and prepare a more informed disclosure for collaborators, reviewers, or an institution.
+
+The intended outcome is transparency, not a simplistic AI-versus-human verdict. AI use can take many forms, from brainstorming and code assistance to editing, summarization, or generating text. A useful disclosure should describe the nature and extent of assistance where known, rather than rely on a detector score alone.
+
+**Important:** this toolkit cannot guarantee detection of every AI interaction, identify every AI-generated passage, or prove that AI was not used. Integrations observe only the events exposed to them and configured by the user; content detectors are probabilistic and can be wrong. Absence of a recorded event is not proof of absence of AI use. Researchers remain responsible for accurately disclosing their use of AI tools and for following the relevant venue or institutional policies.
 
 ## Editor integrations
 
