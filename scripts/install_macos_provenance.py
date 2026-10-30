@@ -13,7 +13,7 @@ def main():
     if not script.is_file():raise SystemExit(f"Missing {script}")
     logdir=root/".writing-provenance"/"launchd";logdir.mkdir(parents=True,exist_ok=True,mode=0o700)
     plist.parent.mkdir(parents=True,exist_ok=True)
-    payload={"Label":label,"ProgramArguments":[str(Path(sys.executable).resolve()),str(script),"--root",str(root),"--interval","5","--manifest-hours","6"],"WorkingDirectory":str(root),"RunAtLoad":True,"KeepAlive":True,"ProcessType":"Background","StandardOutPath":str(logdir/"stdout.log"),"StandardErrorPath":str(logdir/"stderr.log"),"Umask":63}
+    payload={"Label":label,"ProgramArguments":[str(Path(sys.executable).resolve()),str(script),"--root",str(root),"--interval","5","--manifest-hours","6"],"WorkingDirectory":str(root),"EnvironmentVariables":{"PATH":os.environ.get("PATH","/usr/bin:/bin:/usr/sbin:/sbin")},"RunAtLoad":True,"KeepAlive":True,"ProcessType":"Background","StandardOutPath":str(logdir/"stdout.log"),"StandardErrorPath":str(logdir/"stderr.log"),"Umask":63}
     plist.write_bytes(plistlib.dumps(payload,fmt=plistlib.FMT_XML,sort_keys=True));plist.chmod(0o600)
     subprocess.run(["launchctl","bootout",domain,str(plist)],capture_output=True)
     r=subprocess.run(["launchctl","bootstrap",domain,str(plist)],capture_output=True,text=True)
