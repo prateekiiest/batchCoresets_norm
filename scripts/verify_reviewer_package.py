@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Offline verifier for a sanitized research-provenance reviewer package."""
-import argparse, hashlib, json, shutil, subprocess, sys
+import argparse, hashlib, json, re, shutil, subprocess, sys
 from pathlib import Path
 
 ZERO = "0" * 64
@@ -10,6 +10,34 @@ def canonical_hash(value):
     payload.pop("manifest_payload_sha256", None)
     raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
     return hashlib.sha256(raw).hexdigest()
+
+def validate_manifest(value, name):
+    required = {"schema_version", "created_at_utc", "collector_version", "git_head",
+                "previous_manifest_sha256", "logs", "tracked_artifacts_by_extension",
+                "manifest_payload_sha256", "note"}
+    missing = required - set(value)
+    if missing:
+        return f"{name}: missing fields: {', '.join(sorted(missing))}"
+    if value.get("schema_version") != 2:
+        return f"{name}: unsupported schema_version (expected 2)"
+    for field in ("previous_manifest_sha256", "manifest_payload_sha256"):
+        if not re.fullmatch(r"[0-9a-f]{64}", str(value.get(field, ""))):
+            return f"{name}: invalid {field}"
+    head = value.get("git_head")
+    if head is not None and not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", str(head)):
+        return f"{name}: invalid git_head"
+    if not isinstance(value.get("logs"), dict) or not isinstance(value.get("tracked_artifacts_by_extension"), dict):
+        return f"{name}: logs/artifacts must be JSON objects"
+    for label, entries in value["logs"].items():
+        if not isinstance(entries, dict) or not re.fullmatch(r"[0-9a-f]{64}", str(entries.get("sha256", ""))) or not isinstance(entries.get("bytes"), int):
+            return f"{name}: invalid log digest entry for {label}"
+    for extension, entries in value["tracked_artifacts_by_extension"].items():
+        if not isinstance(entries, list):
+            return f"{name}: artifact group {extension} must be a list"
+        for entry in entries:
+            if not isinstance(entry, dict) or not re.fullmatch(r"[0-9a-f]{64}", str(entry.get("sha256", ""))) or not isinstance(entry.get("bytes"), int):
+                return f"{name}: invalid artifact hash entry in group {extension}"
+    return None
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
@@ -31,6 +59,9 @@ def main():
         except Exception as exc:
             errors.append(f"{path.name}: invalid JSON ({type(exc).__name__})")
             continue
+        schema_error = validate_manifest(value, path.name)
+        if schema_error:
+            errors.append(schema_error)
         if value.get("manifest_payload_sha256") != canonical_hash(value):
             errors.append(f"{path.name}: payload digest mismatch")
         if value.get("previous_manifest_sha256", ZERO) != previous:
@@ -54,7 +85,7 @@ def main():
         try:
             data = json.loads(index.read_text(encoding="utf-8"))
             expected = data.get("manifest_files", [])
-            if expected and expected != [x.name for x in manifests]:
+            if expected != [x.name for x in manifests]:
                 errors.append("package index manifest inventory mismatch")
             proof_inventory = data.get("timestamp_proofs", {})
             for name, metadata in proof_inventory.items():
