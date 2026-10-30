@@ -4,7 +4,7 @@ A per-project macOS LaunchAgent runs the collector in the background.
 
 ## Install
 
-First clone this toolkit, then install its collector into each actual paper/code Git working tree. This copies the four runtime scripts into that project, adds the private evidence directory to its `.gitignore`, and installs a project-specific LaunchAgent:
+First clone this toolkit, then install its collector into each actual paper/code Git working tree. This copies the four runtime scripts into that project, adds the private evidence directory to its `.gitignore`, installs the Cursor hooks and opts them in if the target has no existing Cursor hook configuration, and installs a project-specific LaunchAgent. If you already have `.cursor/hooks.json`, the helper leaves it untouched; merge the hook entries manually:
 
 ```bash
 git clone -b macos-automatic-provenance https://github.com/prateekiiest/research-activity-logger.git ~/research-activity-logger
@@ -37,13 +37,7 @@ It does not capture keystrokes, clipboard, screenshots, browser history, prompts
 
 ## Cursor, VS Code and Overleaf
 
-Enable existing Cursor hooks with:
-
-```bash
-python3 .cursor/hooks/record_provenance.py --enable
-```
-
-Enable the existing VS Code extension once per workspace using the Command Palette. The explicit opt-in is persisted in that workspace and tracking resumes when the extension activates on subsequent starts; use the disable command to revoke it.
+The project helper enables Cursor hooks when it safely installs a new hook configuration. If you merged hooks manually, enable them with `python3 .cursor/hooks/record_provenance.py --enable`. The filesystem collector captures saved changes regardless of editor; the VS Code extension is optional and adds unsaved-buffer hashes. Enable that extension once per workspace using the Command Palette. The explicit opt-in is persisted in that workspace and tracking resumes when the extension activates on subsequent starts; use the disable command to revoke it.
 
 For Overleaf Git synchronization, synchronize the Overleaf project into the local Git working tree being monitored. The collector observes the resulting saved files and Git HEAD. If Overleaf is a separate clone, install the LaunchAgent from that clone too. This collector deliberately does not push or pull automatically and does not store Overleaf credentials. Never place tokens in committed remotes, shell history, or logs.
 
