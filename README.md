@@ -188,6 +188,16 @@ python3 scripts/verify_reviewer_package.py public-evidence/reviewer-package --ve
 
 The first verifier command checks manifest integrity and chain links offline. Timestamp verification may require network access or locally available Bitcoin header data. The installer also copies the reviewer guide to `docs/provenance/REVIEWER_GUIDE.md` and the manifest schema to `schemas/reviewer-manifest-v2.schema.json`. See the [reviewer guide](docs/reviewer-guide.md) and [evidence schema](docs/evidence-schema.md).
 
+## Cold Turkey: read-only storage diagnostic
+
+To identify whether the installed macOS version exposes a locally readable statistics database, run:
+
+```bash
+python3 scripts/diagnose_cold_turkey.py
+```
+
+The diagnostic prints only candidate-file metadata and SQLite table/column names. It never reads or prints activity rows, URLs, website/application names, or window titles, and it does not modify or upload anything. See [the diagnostic guide](docs/cold-turkey-diagnostic.md). Automatic 15-minute statistics extraction will be implemented only after the actual local schema is identified and validated.
+
 ## LaunchAgent health and Cold Turkey (optional)
 
 The macOS collector records its own startup, periodic (approximately 60-second) heartbeat after a successful scan, and caught errors. These records help identify collection gaps; they do not independently monitor `launchd` or prove uninterrupted operation. The periodic sanitized manifest can also include hashes and sizes of LaunchAgent stdout/stderr logs.
