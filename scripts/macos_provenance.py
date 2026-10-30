@@ -4,7 +4,7 @@ import argparse, hashlib, json, os, subprocess, time, uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-EXTS={".tex",".bib",".md",".rst",".txt",".py",".ipynb",".r",".jl",".js",".ts",".tsx",".jsx",".json",".yaml",".yml",".toml",".ini",".cfg",".sh",".bash",".zsh",".sql",".csv",".tsv",".html",".htm",".css",".xml"}
+EXTS={".tex",".bib",".md",".rst",".txt",".py",".ipynb",".r",".jl",".js",".ts",".tsx",".jsx",".json",".yaml",".yml",".toml",".ini",".cfg",".sh",".bash",".zsh",".sql",".csv",".tsv",".jsonl",".log",".pdf",".png",".jpg",".jpeg",".svg",".eps",".webp",".html",".htm",".css",".xml"}
 EXCLUDED={".git",".writing-provenance",".venv","venv","__pycache__","node_modules",".ipynb_checkpoints",".tox",".mypy_cache",".pytest_cache","data","datasets","vendor"}
 MAX_BYTES=25*1024*1024
 ZERO="0"*64
