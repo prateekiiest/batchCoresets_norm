@@ -10,19 +10,19 @@ From the root of a local Git clone:
 python3 scripts/install_macos_provenance.py
 ```
 
-It installs `~/Library/LaunchAgents/org.prateek.research-activity-logger.plist`, starts immediately, restarts after an unexpected exit, and starts at login.
+It installs a project-specific LaunchAgent under `~/Library/LaunchAgents/` (the label is derived from the absolute project path), starts immediately, restarts after an unexpected exit, and starts at login. You can install it separately in multiple paper/code Git working trees; each gets its own agent and private evidence directory.
 
 Check status:
 
 ```bash
-launchctl print gui/$(id -u)/org.prateek.research-activity-logger
+launchctl list | grep research-activity-logger
 tail -f .writing-provenance/launchd/stderr.log
 ```
 
 Uninstall without deleting evidence:
 
 ```bash
-python3 scripts/install_macos_provenance.py --uninstall
+python3 scripts/install_macos_provenance.py --uninstall --root /absolute/path/to/that/project
 ```
 
 ## Captured activity
