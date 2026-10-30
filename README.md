@@ -134,23 +134,12 @@ python3 scripts/anchor_provenance.py
 
 This validates the event chains first, then submits only a manifest of log hashes (not prompts, responses, or edit contents) to public timestamp calendars. Keep the generated `checkpoints/provenance-anchor-*.json` and matching `.ots` proof. A proof may initially be pending; later run `ots upgrade checkpoints/ACTUAL-MANIFEST.json.ots` and verify it with `ots verify checkpoints/ACTUAL-MANIFEST.json.ots`. Copy both files to storage outside this computer (for example, a separate private cloud account or removable drive). The external timestamp supports that the hashed manifest existed no later than the time anchored by the calendar; it does not prove authorship or that the original log was complete. Do not publish the log files themselves unless you intend to disclose their contents.
 
-1. Start the logger before the research session.
-2. Update `IDEA_LOG.md`, `DAILY_LOG.md`, and `DECISIONS.md` where relevant.
-3. Commit meaningful changes with descriptive messages and push them to the appropriate remote repository.
-4. Generate a checkpoint:
-
-   ```bash
-   python3 scripts/checkpoint.py --label "experiment-milestone"
-   ```
-
-5. Stamp the actual checkpoint JSON file produced by the script:
-
-   ```bash
-   ots stamp checkpoints/ACTUAL-CHECKPOINT-FILENAME.json
-   ```
-
-   Replace the example filename with the generated filename. Keep both the JSON checkpoint and its `.ots` proof. A pending OpenTimestamps proof is not yet a completed independent timestamp.
-6. When verifying a historical file hash, check out the relevant recorded Git commit first. Retain copies of important records and proofs outside the working directory.
+1. Install the macOS LaunchAgent once in each local research Git working tree (see [the automatic macOS guide](docs/macos-automatic-provenance.md)).
+2. Work normally in Cursor/VS Code and commit code/manuscript changes as you usually do. No daily diary or per-edit manual annotation is required by the automatic collector.
+3. The background service polls saved files, observes local Git HEAD changes, and writes private manifests every six hours.
+4. Optionally install OpenTimestamps with `python3 -m pip install --user opentimestamps-client`; when `ots` is available, the collector automatically requests timestamps for each generated manifest. Pending proofs still need later upgrade/verification.
+5. Generate a sanitized reviewer package with `python3 scripts/export_public_evidence.py`. Inspect it before publishing; never publish `.writing-provenance/` or raw snapshots.
+6. Keep selected manifests and their `.ots` proofs outside the working Mac/account.
 
 | Evidence | What it can support |
 |---|---|
