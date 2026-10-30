@@ -39,4 +39,7 @@ else
 fi
 python3 "$TARGET/scripts/install_macos_provenance.py" --root "$TARGET"
 echo "Installed collector for: $TARGET"
-echo "The scripts and .gitignore change are in the target working tree; review and commit them."
+echo "The scripts, reviewer guide, schema, workflow and .gitignore change are in the target working tree; review and commit them."
+if ! command -v ots >/dev/null 2>&1; then
+  echo "Optional: install OpenTimestamps for external anchors: python3 -m pip install --user opentimestamps-client"
+fi
