@@ -11,10 +11,13 @@ if [[ ! -e "$TARGET/.git" ]]; then
   echo "Target must be a local Git working tree: $TARGET" >&2
   exit 2
 fi
-mkdir -p "$TARGET/scripts" "$TARGET/.github/workflows"
-for name in macos_provenance.py install_macos_provenance.py verify_macos_provenance.py export_public_evidence.py analyze_research_evidence.py; do
+mkdir -p "$TARGET/scripts" "$TARGET/.github/workflows" "$TARGET/docs/provenance" "$TARGET/schemas"
+for name in macos_provenance.py install_macos_provenance.py verify_macos_provenance.py export_public_evidence.py analyze_research_evidence.py verify_reviewer_package.py; do
   cp "$SOURCE/$name" "$TARGET/scripts/$name"
 done
+cp "$TOOL_ROOT/docs/reviewer-guide.md" "$TARGET/docs/provenance/REVIEWER_GUIDE.md"
+cp "$TOOL_ROOT/docs/evidence-schema.md" "$TARGET/docs/provenance/EVIDENCE_SCHEMA.md"
+cp "$TOOL_ROOT/schemas/reviewer-manifest-v2.schema.json" "$TARGET/schemas/reviewer-manifest-v2.schema.json"
 WORKFLOW="$TARGET/.github/workflows/research-provenance.yml"
 if [[ ! -e "$WORKFLOW" ]]; then
   cp "$TOOL_ROOT/templates/research-project-provenance.yml" "$WORKFLOW"
@@ -36,4 +39,7 @@ else
 fi
 python3 "$TARGET/scripts/install_macos_provenance.py" --root "$TARGET"
 echo "Installed collector for: $TARGET"
-echo "The scripts and .gitignore change are in the target working tree; review and commit them."
+echo "The scripts, reviewer guide, schema, workflow and .gitignore change are in the target working tree; review and commit them."
+if ! command -v ots >/dev/null 2>&1; then
+  echo "Optional: install OpenTimestamps for external anchors: python3 -m pip install --user opentimestamps-client"
+fi

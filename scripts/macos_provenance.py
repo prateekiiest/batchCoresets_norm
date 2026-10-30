@@ -28,6 +28,7 @@ class Collector:
             except OSError:pass
         self.state=json.loads(self.statefile.read_text()) if self.statefile.exists() else {"files":{},"git_head":None}
         self.interval=max(2,interval); self.manifest_interval=max(1,hours)*3600; self.last_manifest=0
+        self.started_monotonic=time.monotonic(); self.last_heartbeat=0; self.scan_count=0
 
     def append(self,fields):
         prev=ZERO
@@ -83,37 +84,57 @@ class Collector:
 
     def manifest(self):
         logs={}
-        for name,p in (("macos",self.events),("cursor",self.store/"cursor-events.jsonl"),("vscode",self.store/"vscode-events.jsonl"),("legacy",self.store/"events.jsonl")):
+        for name,p in (("macos",self.events),("cursor",self.store/"cursor-events.jsonl"),("vscode",self.store/"vscode-events.jsonl"),("legacy",self.store/"events.jsonl"),("launchd_stdout",self.store/"launchd"/"stdout.log"),("launchd_stderr",self.store/"launchd"/"stderr.log"),("cold_turkey_statistics_export",self.store/"cold-turkey-statistics-export.json")):
             if p.is_file():logs[name]={"sha256":filehash(p),"bytes":p.stat().st_size}
-        artifacts={}
+        grouped={}
         try:
             r=subprocess.run(["git","ls-files","-z"],cwd=self.root,capture_output=True,check=True)
             for n in r.stdout.decode().split("\0"):
                 if n:
                     p=self.root/n
-                    if p.is_file() and not p.is_symlink() and p.stat().st_size<=MAX_BYTES:artifacts[n]={"sha256":filehash(p),"bytes":p.stat().st_size}
+                    if p.is_file() and not p.is_symlink() and p.stat().st_size<=MAX_BYTES:
+                        ext=p.suffix.lower() or "[no-extension]"
+                        grouped.setdefault(ext,[]).append({"sha256":filehash(p),"bytes":p.stat().st_size})
         except Exception:pass
-        m={"schema_version":1,"created_at_utc":now(),"git_head":self.state.get("git_head"),"logs":logs,"tracked_artifacts":artifacts,"note":"Local manifest; independently timestamp its hash for external time evidence."}
-        m["manifest_payload_sha256"]=digest(json.dumps(m,sort_keys=True,separators=(",",":")).encode())
-        out=self.manifests/f"manifest-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}.json"
-        out.write_text(json.dumps(m,sort_keys=True,indent=2)+"\n")
+        for values in grouped.values():values.sort(key=lambda x:(x["sha256"],x["bytes"]))
+        prior=[]
+        for candidate in self.manifests.glob("manifest-*.json"):
+            try:
+                if json.loads(candidate.read_text(encoding="utf-8")).get("schema_version")==2: prior.append(candidate)
+            except Exception: pass
+        prior=sorted(prior)
+        previous=filehash(prior[-1]) if prior else ZERO
+        m={"schema_version":2,"created_at_utc":now(),"collector_version":"research-activity-logger/2","git_head":self.state.get("git_head"),"previous_manifest_sha256":previous,"logs":logs,"tracked_artifacts_by_extension":dict(sorted(grouped.items())),"note":"Path-redacted manifest. Hashes describe local observations; they do not establish authorship or complete activity capture."}
+        m["manifest_payload_sha256"]=digest(json.dumps(m,sort_keys=True,separators=(",",":"),ensure_ascii=False).encode("utf-8"))
+        out=self.manifests/f"manifest-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S.%fZ')}.json"
+        out.write_text(json.dumps(m,sort_keys=True,indent=2,ensure_ascii=False)+"\n")
         try:out.chmod(0o600)
         except OSError:pass
-        self.append({"event_type":"manifest_created","evidence_class":"local_manifest","path":out.relative_to(self.root).as_posix(),"sha256":filehash(out),"interpretation":"Local manifest; timestamp is not independently trusted."})
+        self.append({"event_type":"manifest_created","evidence_class":"local_manifest","sha256":filehash(out),"interpretation":"Path-redacted periodic manifest; its local creation time is not independently trusted."})
         ots=shutil.which("ots")
         if ots:
             try:
                 stamped=subprocess.run([ots,"stamp",str(out)],capture_output=True,text=True,timeout=180)
-                self.append({"event_type":"external_timestamp_requested","evidence_class":"timestamp_client_observed","manifest":out.relative_to(self.root).as_posix(),"proof":str(out)+".ots","returncode":stamped.returncode,"interpretation":"OpenTimestamps stamp request attempted; verify the proof and upgrade pending proofs before claiming an anchored timestamp."})
+                self.append({"event_type":"external_timestamp_requested","evidence_class":"timestamp_client_observed","manifest_sha256":filehash(out),"returncode":stamped.returncode,"interpretation":"OpenTimestamps request attempted. Verify the matching proof; a pending proof is not a completed timestamp."})
             except Exception as exc:
-                self.append({"event_type":"external_timestamp_error","evidence_class":"timestamp_client_error","manifest":out.relative_to(self.root).as_posix(),"error_type":type(exc).__name__,"interpretation":"Timestamp request failed; local manifest remains available."})
+                self.append({"event_type":"external_timestamp_error","evidence_class":"timestamp_client_error","manifest_sha256":filehash(out),"error_type":type(exc).__name__,"interpretation":"Timestamp request failed; manifest remains local."})
 
     def run(self):
+        self.append({"event_type":"collector_started","evidence_class":"launchagent_observed","collector_version":"research-activity-logger/2","interpretation":"Collector process started; this does not independently prove LaunchAgent configuration or continuous operation."})
         print(f"Research provenance running for {self.root}",flush=True)
         while True:
-            self.scan()
-            if time.monotonic()-self.last_manifest>=self.manifest_interval:
-                self.manifest(); self.last_manifest=time.monotonic()
+            try:
+                self.scan()
+                self.scan_count+=1
+                elapsed=time.monotonic()
+                if elapsed-self.last_heartbeat>=60:
+                    self.append({"event_type":"collector_heartbeat","evidence_class":"collector_self_report","scan_count":self.scan_count,"uptime_seconds":int(elapsed-self.started_monotonic),"interpretation":"Collector self-reported a heartbeat after a scan; missing heartbeats indicate an observation gap, not its cause."})
+                    self.last_heartbeat=elapsed
+                if elapsed-self.last_manifest>=self.manifest_interval:
+                    self.manifest(); self.last_manifest=time.monotonic()
+            except Exception as exc:
+                self.append({"event_type":"collector_error","evidence_class":"collector_self_report","error_type":type(exc).__name__,"interpretation":"Collector caught an exception; details are omitted to avoid recording potentially sensitive paths or content."})
+                time.sleep(max(self.interval,10))
             time.sleep(self.interval)
 
 def main():

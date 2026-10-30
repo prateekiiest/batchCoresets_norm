@@ -172,6 +172,28 @@ python3 scripts/export_public_evidence.py
 
 Review every generated file before adding it to a paper appendix, project page, or submission package. Do not publish `.writing-provenance/` or raw snapshots.
 
+The exporter also creates a path-redacted reviewer package at `public-evidence/reviewer-package/`, containing periodic manifests and matching OpenTimestamps proof files when available. Install the timestamp client before collection to request external anchors:
+
+```bash
+python3 -m pip install --user opentimestamps-client
+```
+
+The collector requests a timestamp for each six-hour manifest when the `ots` command is available. Requests may remain pending; a proof file is not a verified timestamp until a reviewer successfully verifies it. After collection, export and verify the package:
+
+```bash
+python3 scripts/export_public_evidence.py
+python3 scripts/verify_reviewer_package.py public-evidence/reviewer-package
+python3 scripts/verify_reviewer_package.py public-evidence/reviewer-package --verify-timestamps
+```
+
+The first verifier command checks manifest integrity and chain links offline. Timestamp verification may require network access or locally available Bitcoin header data. The installer also copies the reviewer guide to `docs/provenance/REVIEWER_GUIDE.md` and the manifest schema to `schemas/reviewer-manifest-v2.schema.json`. See the [reviewer guide](docs/reviewer-guide.md) and [evidence schema](docs/evidence-schema.md).
+
+## LaunchAgent health and Cold Turkey (optional)
+
+The macOS collector records its own startup, periodic (approximately 60-second) heartbeat after a successful scan, and caught errors. These records help identify collection gaps; they do not independently monitor `launchd` or prove uninterrupted operation. The periodic sanitized manifest can also include hashes and sizes of LaunchAgent stdout/stderr logs.
+
+If Cold Turkey Blocker Statistics is enabled, export the visible statistics from its Statistics tab. To include an integrity reference to that export in a future manifest, keep a private copy at `.writing-provenance/cold-turkey-statistics-export.json`. The collector records only its SHA-256 and size; it does not parse or publish the export. Do not commit or upload the original export: it may contain website, application, or window-title details. A hash proves only which bytes were referenced, not that blocking was continuously enforced. See the [Cold Turkey user guide](https://getcoldturkey.com/support/user-guide/) for the export workflow.
+
 ## What gets recorded
 
 The macOS collector periodically observes saved files in the research project, records file hashes and metadata, observes local Git HEAD changes, and creates periodic manifests. It supports common research artifacts such as manuscripts, source files, notes, configuration files, experiment logs, PDFs, and figures.
