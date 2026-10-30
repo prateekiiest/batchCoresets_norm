@@ -69,7 +69,7 @@ Install OpenTimestamps before or during collection:
 python3 -m pip install --user opentimestamps-client
 ```
 
-When the `ots` executable is available, the collector attempts to timestamp each six-hour path-redacted manifest. This request may remain pending while calendar servers aggregate the commitment. The package exporter copies matching proofs, but does not upgrade them automatically.
+When the `ots` executable is available on the shell PATH, the collector attempts to timestamp each six-hour path-redacted manifest. The LaunchAgent inherits the PATH from the environment in which it was installed. If you install OpenTimestamps after the collector, ensure `command -v ots` works in Terminal and reinstall the LaunchAgent with `python3 scripts/install_macos_provenance.py --root .` so its environment is refreshed. This request may remain pending while calendar servers aggregate the commitment. The package exporter copies matching proofs, but does not upgrade them automatically.
 
 To upgrade a pending proof while online:
 
