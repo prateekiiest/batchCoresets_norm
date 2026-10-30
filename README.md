@@ -188,6 +188,12 @@ python3 scripts/verify_reviewer_package.py public-evidence/reviewer-package --ve
 
 The first verifier command checks manifest integrity and chain links offline. Timestamp verification may require network access or locally available Bitcoin header data. The installer also copies the reviewer guide to `docs/provenance/REVIEWER_GUIDE.md` and the manifest schema to `schemas/reviewer-manifest-v2.schema.json`. See the [reviewer guide](docs/reviewer-guide.md) and [evidence schema](docs/evidence-schema.md).
 
+## LaunchAgent health and Cold Turkey (optional)
+
+The macOS collector records its own startup, periodic (approximately 60-second) heartbeat after a successful scan, and caught errors. These records help identify collection gaps; they do not independently monitor `launchd` or prove uninterrupted operation. The periodic sanitized manifest can also include hashes and sizes of LaunchAgent stdout/stderr logs.
+
+If Cold Turkey Blocker Statistics is enabled, export the visible statistics from its Statistics tab. To include an integrity reference to that export in a future manifest, keep a private copy at `.writing-provenance/cold-turkey-statistics-export.json`. The collector records only its SHA-256 and size; it does not parse or publish the export. Do not commit or upload the original export: it may contain website, application, or window-title details. A hash proves only which bytes were referenced, not that blocking was continuously enforced. See the [Cold Turkey user guide](https://getcoldturkey.com/support/user-guide/) for the export workflow.
+
 ## What gets recorded
 
 The macOS collector periodically observes saved files in the research project, records file hashes and metadata, observes local Git HEAD changes, and creates periodic manifests. It supports common research artifacts such as manuscripts, source files, notes, configuration files, experiment logs, PDFs, and figures.
