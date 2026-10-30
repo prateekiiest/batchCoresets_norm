@@ -41,32 +41,51 @@ The project helper enables Cursor hooks when it safely installs a new hook confi
 
 For Overleaf Git synchronization, synchronize the Overleaf project into the local Git working tree being monitored. The collector observes the resulting saved files and Git HEAD. If Overleaf is a separate clone, install the LaunchAgent from that clone too. This collector deliberately does not push or pull automatically and does not store Overleaf credentials. Never place tokens in committed remotes, shell history, or logs.
 
-## Public reviewer evidence
+## Sanitized reviewer evidence package
 
-Generate a sanitized manifest:
+Generate the reviewer-facing package:
 
 ```bash
 python3 scripts/export_public_evidence.py
 ```
 
-By default it groups artifact hashes by extension and omits paths. Use `--include-paths` only if reviewers need to verify individual files. The exporter does not copy raw logs or snapshots. Review output before publication. Keep `.writing-provenance/` private.
+This writes `public-evidence/reviewer-package/` with path-redacted periodic manifests and matching `.ots` proof files when present. It does not include raw event logs, snapshots, prompts, responses, document contents, usernames, or file paths. Keep `.writing-provenance/` private and inspect all generated files before publication.
+
+The installer copies the offline verifier to `scripts/verify_reviewer_package.py`, the reviewer guide to `docs/provenance/REVIEWER_GUIDE.md`, and the schema to `schemas/reviewer-manifest-v2.schema.json`.
+
+Run the offline integrity check:
+
+```bash
+python3 scripts/verify_reviewer_package.py public-evidence/reviewer-package
+```
+
+It validates manifest payload digests, previous-manifest links, and package inventory using Python's standard library. A PASS establishes consistency of the supplied records, not completeness or authorship.
 
 ## External timestamping
 
-A local manifest is not an independent timestamp. If you install OpenTimestamps, the background collector automatically requests a timestamp for each six-hour manifest:
+Install OpenTimestamps before or during collection:
 
 ```bash
 python3 -m pip install --user opentimestamps-client
 ```
 
-The request may remain pending until calendar aggregation completes. Keep the JSON and `.ots` proof outside the Mac as well. To manually anchor a selected manifest:
+When the `ots` executable is available, the collector attempts to timestamp each six-hour path-redacted manifest. This request may remain pending while calendar servers aggregate the commitment. The package exporter copies matching proofs, but does not upgrade them automatically.
+
+To upgrade a pending proof while online:
 
 ```bash
-python3 -m pip install --user opentimestamps-client
-ots stamp .writing-provenance/manifests/ACTUAL-MANIFEST.json
+ots upgrade .writing-provenance/manifests/ACTUAL-MANIFEST.json.ots
 ```
 
-Preserve the JSON and matching `.ots` proof off the Mac. A proof may initially be pending; later run `ots upgrade FILE.json.ots` and `ots verify FILE.json.ots`.
+Then export the reviewer package again. A reviewer can request proof verification with:
+
+```bash
+python3 scripts/verify_reviewer_package.py public-evidence/reviewer-package --verify-timestamps
+```
+
+Offline manifest checks do not require network access. OpenTimestamps verification may require network access or locally available Bitcoin header data, depending on proof state and client version. Only describe a timestamp as externally verified after the verifier reports a successful OpenTimestamps verification. A proof file's presence alone is not sufficient.
+
+See [Reviewer guide](reviewer-guide.md) and [Evidence schema](evidence-schema.md) for package interpretation and field definitions.
 
 ## Limitations
 
