@@ -55,7 +55,13 @@ By default it groups artifact hashes by extension and omits paths. Use `--includ
 
 ## External timestamping
 
-A local manifest is not an independent timestamp. To anchor a chosen manifest:
+A local manifest is not an independent timestamp. If you install OpenTimestamps, the background collector automatically requests a timestamp for each six-hour manifest:
+
+```bash
+python3 -m pip install --user opentimestamps-client
+```
+
+The request may remain pending until calendar aggregation completes. Keep the JSON and `.ots` proof outside the Mac as well. To manually anchor a selected manifest:
 
 ```bash
 python3 -m pip install --user opentimestamps-client
