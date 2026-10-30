@@ -60,27 +60,25 @@ The toolkit repository and the research project are separate: clone this reposit
 Open Terminal and run:
 
 ```bash
-git clone -b research-evidence-report https://github.com/prateekiiest/research-activity-logger.git ~/research-activity-logger
+git clone https://github.com/prateekiiest/research-activity-logger.git ~/research-activity-logger
 cd ~/research-activity-logger
 ```
 
-### 2. Install it into your research project
+### 2. One-command setup (recommended)
 
-Pass the absolute path to a local Git repository containing your paper or code:
-
-```bash
-bash ~/research-activity-logger/scripts/install_into_project.sh /absolute/path/to/your/research-repository
-```
-
-For example, if your project is at `~/work/my-paper`:
+On macOS, with Python 3, Git, Node.js/npm, and VS Code installed, run this once for each research Git repository:
 
 ```bash
-bash ~/research-activity-logger/scripts/install_into_project.sh ~/work/my-paper
+bash ~/research-activity-logger/scripts/setup_research_provenance.sh ~/work/my-paper
 ```
 
-Run the installer once for each separate Git working tree you want to monitor. If your paper and code are in the same Git repository, install only once.
+The installer packages and installs the VS Code extension, installs the background macOS collector, adds the private evidence directory to `.gitignore`, and installs Cursor hooks only if doing so will not overwrite an existing Cursor hook configuration. It does not overwrite your existing project files other than the intended `.gitignore` addition and supplied runtime scripts. The VS Code `code` command must be available on your PATH; if it is not, use VS Code's `Shell Command: Install 'code' command in PATH` command and rerun the installer.
 
-The installer copies the runtime scripts into the project, adds `.writing-provenance/` to that project's `.gitignore`, and installs a project-specific background LaunchAgent. It also installs and enables the Cursor hooks when it can do so without overwriting an existing `.cursor/hooks.json`. If that file already exists, the installer leaves it untouched; see [Editor integrations](#editor-integrations).
+Then open the research project in VS Code and run **Writing Provenance: Initialize This Research Workspace** from the Command Palette. Confirm the consent prompt to enable editor metadata capture. This is the one-time workspace opt-in; tracking remains disabled until you explicitly confirm.
+
+The installer requires internet access once to package the extension through npm. The extension itself makes no network requests and does not upload logs.
+
+Run the installer once for each separate Git working tree you want to monitor. If your paper and code are in the same Git repository, install only once. It replaces the toolkit's named runtime scripts in the target `scripts/` directory; keep local modifications to those same-named files elsewhere before running it. If the project already has `.cursor/hooks.json`, it is left untouched and must be merged manually; see [Editor integrations](#editor-integrations).
 
 ### 3. Confirm that the collector is running
 
