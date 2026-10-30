@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Background macOS collector for saved research files and Git HEAD changes."""
-import argparse, hashlib, json, os, shutil, subprocess, time, uuid\nimport cold_turkey_stats
+import argparse, hashlib, json, os, shutil, subprocess, time, uuid
+import cold_turkey_stats
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -28,7 +29,8 @@ class Collector:
             except OSError:pass
         self.state=json.loads(self.statefile.read_text()) if self.statefile.exists() else {"files":{},"git_head":None}
         self.interval=max(2,interval); self.manifest_interval=max(1,hours)*3600; self.last_manifest=0
-        self.started_monotonic=time.monotonic(); self.last_heartbeat=0; self.scan_count=0\n        self.cold_turkey_interval=max(60,cold_turkey_interval); self.last_cold_turkey=0
+        self.started_monotonic=time.monotonic(); self.last_heartbeat=0; self.scan_count=0
+        self.cold_turkey_interval=max(60,cold_turkey_interval); self.last_cold_turkey=0
 
     def append(self,fields):
         prev=ZERO
