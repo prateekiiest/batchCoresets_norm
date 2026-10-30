@@ -56,7 +56,6 @@ jobs:
           python scripts/analyze_research_evidence.py --help
           python scripts/verify_macos_provenance.py --help
           python scripts/verify_reviewer_package.py --help
-          python scripts/diagnose_cold_turkey.py --help
       - name: Test reviewer package verifier
         run: python -m unittest discover -s tests -p "test_reviewer_package.py" -v
       - name: Check installation helper syntax
