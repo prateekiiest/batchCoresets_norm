@@ -31,7 +31,7 @@ Then run:
 
     python3 scripts/verify_reviewer_package.py public-evidence/reviewer-package --verify-timestamps
 
-This invokes ots verify for included proofs. Bitcoin timestamp verification may need network access or locally available Bitcoin header data, depending on proof state and client version. A pending proof is not a completed Bitcoin anchoring. Do not claim an externally verified timestamp until ots verify reports success. The package verifier does not upgrade proofs or contact timestamp calendars.
+This invokes ots verify for included proofs. Bitcoin timestamp verification may need network access or locally available Bitcoin header data, depending on proof state and client version. A pending proof is not a completed Bitcoin anchoring. If the package-index proof is absent, the reviewer cannot rule out that the package omits later manifests. Do not claim an externally verified timestamp until ots verify reports success. The package verifier does not upgrade proofs or contact timestamp calendars.
 
 A researcher can separately upgrade a pending proof while online with:
 
