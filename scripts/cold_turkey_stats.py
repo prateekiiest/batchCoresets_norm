@@ -19,21 +19,21 @@ DEFAULT_ROOT = Path("/Library/Application Support/Cold Turkey")
 METRICS = (
     "browser_seconds",
     "browser_strict_seconds",
-    "browser_blocked_events",
+    "browser_blocked_rows",
     "app_seconds",
     "app_strict_seconds",
-    "app_blocked_events",
+    "app_blocked_rows",
 )
 SOURCES = {
     "data-browser.db": {
         "stats": ("browser_seconds", "sum"),
         "statsStrict": ("browser_strict_seconds", "sum"),
-        "statsBlocked": ("browser_blocked_events", "count"),
+        "statsBlocked": ("browser_blocked_rows", "count"),
     },
     "data-helper.db": {
         "statsApp": ("app_seconds", "sum"),
         "statsAppStrict": ("app_strict_seconds", "sum"),
-        "statsBlocked": ("app_blocked_events", "count"),
+        "statsBlocked": ("app_blocked_rows", "count"),
     },
 }
 NOTES = [
