@@ -58,7 +58,7 @@ def aggregate_one(db_path, table_specs, daily):
     if not db_path.is_file():
         return result
     try:
-        with read_only_connection(db_path) as db:
+        with closing(read_only_connection(db_path)) as db:
             names = {row[0] for row in db.execute(
                 "SELECT name FROM sqlite_master WHERE type='table'"
             )}
