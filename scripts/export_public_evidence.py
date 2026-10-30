@@ -48,7 +48,14 @@ def main():
         if proof.is_file():
             shutil.copyfile(proof,md/proof.name); proofs[proof.name]={"sha256":h(proof),"bytes":proof.stat().st_size}
     index={"package_schema_version":1,"generated_at_utc":datetime.now(timezone.utc).isoformat(),"manifest_files":included,"timestamp_proofs":proofs,"privacy":"Only path-redacted manifests and matching OpenTimestamps proof files are included; raw logs and snapshots are excluded."}
-    (package/"package-index.json").write_text(json.dumps(index,indent=2,sort_keys=True)+"\n")
+    index_path=package/"package-index.json"; index_path.write_text(json.dumps(index,indent=2,sort_keys=True)+"\n")
+    ots=shutil.which("ots")
+    if ots:
+        try:
+            subprocess.run([ots,"stamp",str(index_path)],capture_output=True,text=True,timeout=180,check=True)
+            proof=index_path.with_suffix(index_path.suffix+".ots")
+            if proof.is_file(): print("Timestamped package inventory:",proof.name)
+        except Exception as exc: print("WARNING: package inventory timestamp failed:",type(exc).__name__)
     (package/"README.md").write_text("# Sanitized reviewer package\n\nRun python3 scripts/verify_reviewer_package.py public-evidence/reviewer-package for offline manifest integrity checks. Add --verify-timestamps to invoke OpenTimestamps verification when the ots client is installed. See docs/provenance/REVIEWER_GUIDE.md for interpretation and limitations. This package excludes raw logs, snapshots, prompts, responses, document contents, usernames, and paths.\n")
     print("Wrote",out.relative_to(ROOT));print("Wrote",package.relative_to(ROOT));print("Inspect before publishing.")
 if __name__=="__main__":main()
