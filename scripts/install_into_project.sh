@@ -11,7 +11,7 @@ if [[ ! -e "$TARGET/.git" ]]; then
   exit 2
 fi
 mkdir -p "$TARGET/scripts"
-for name in macos_provenance.py install_macos_provenance.py verify_macos_provenance.py export_public_evidence.py; do
+for name in macos_provenance.py install_macos_provenance.py verify_macos_provenance.py export_public_evidence.py analyze_research_evidence.py; do
   cp "$SOURCE/$name" "$TARGET/scripts/$name"
 done
 touch "$TARGET/.gitignore"

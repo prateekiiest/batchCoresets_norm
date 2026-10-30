@@ -4,7 +4,7 @@ A per-project macOS LaunchAgent runs the collector in the background.
 
 ## Install
 
-First clone this toolkit, then install its collector into each actual paper/code Git working tree. This copies the four runtime scripts into that project, adds the private evidence directory to its `.gitignore`, installs the Cursor hooks and opts them in if the target has no existing Cursor hook configuration, and installs a project-specific LaunchAgent. If you already have `.cursor/hooks.json`, the helper leaves it untouched; merge the hook entries manually:
+First clone this toolkit, then install its collector into each actual paper/code Git working tree. This copies the runtime scripts, including the reviewer evidence analyzer, into that project, adds the private evidence directory to its `.gitignore`, installs the Cursor hooks and opts them in if the target has no existing Cursor hook configuration, and installs a project-specific LaunchAgent. If you already have `.cursor/hooks.json`, the helper leaves it untouched; merge the hook entries manually:
 
 ```bash
 git clone -b macos-automatic-provenance https://github.com/prateekiiest/research-activity-logger.git ~/research-activity-logger
