@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Background macOS collector for saved research files and Git HEAD changes."""
-import argparse, hashlib, json, os, subprocess, time, uuid
+import argparse, hashlib, json, os, shutil, subprocess, time, uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -100,6 +100,13 @@ class Collector:
         try:out.chmod(0o600)
         except OSError:pass
         self.append({"event_type":"manifest_created","evidence_class":"local_manifest","path":out.relative_to(self.root).as_posix(),"sha256":filehash(out),"interpretation":"Local manifest; timestamp is not independently trusted."})
+        ots=shutil.which("ots")
+        if ots:
+            try:
+                stamped=subprocess.run([ots,"stamp",str(out)],capture_output=True,text=True,timeout=180)
+                self.append({"event_type":"external_timestamp_requested","evidence_class":"timestamp_client_observed","manifest":out.relative_to(self.root).as_posix(),"proof":str(out)+".ots","returncode":stamped.returncode,"interpretation":"OpenTimestamps stamp request attempted; verify the proof and upgrade pending proofs before claiming an anchored timestamp."})
+            except Exception as exc:
+                self.append({"event_type":"external_timestamp_error","evidence_class":"timestamp_client_error","manifest":out.relative_to(self.root).as_posix(),"error_type":type(exc).__name__,"interpretation":"Timestamp request failed; local manifest remains available."})
 
     def run(self):
         print(f"Research provenance running for {self.root}",flush=True)
