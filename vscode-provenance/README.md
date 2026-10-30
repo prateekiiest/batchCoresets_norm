@@ -49,12 +49,11 @@ A VS Code-only extension cannot universally detect every AI provider, browser ch
 From the research repository root:
 
 ```bash
-python3 scripts/verify_provenance.py
 python3 scripts/verify_macos_provenance.py --snapshots
 python3 scripts/analyze_research_evidence.py
 ```
 
-The verifier checks available event hash chains. The analyzer writes a reviewer-friendly Markdown report and a JSON audit summary. These checks support integrity review of available records; they do not prove completeness, immutability, or authorship.
+The macOS verifier checks available collector event chains and saved snapshot hashes. The analyzer writes a reviewer-friendly Markdown report and a JSON audit summary. These checks support integrity review of available records; they do not prove completeness, immutability, or authorship.
 
 ## Disable / uninstall
 
