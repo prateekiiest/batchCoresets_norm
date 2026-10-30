@@ -52,9 +52,17 @@ def main():
     index = root / "package-index.json"
     if index.exists():
         try:
-            expected = json.loads(index.read_text(encoding="utf-8")).get("manifest_files", [])
+            data = json.loads(index.read_text(encoding="utf-8"))
+            expected = data.get("manifest_files", [])
             if expected and expected != [x.name for x in manifests]:
                 errors.append("package index manifest inventory mismatch")
+            proof_inventory = data.get("timestamp_proofs", {})
+            for name, metadata in proof_inventory.items():
+                proof = md / name
+                if not proof.is_file():
+                    errors.append(f"indexed timestamp proof missing: {name}")
+                elif hashlib.sha256(proof.read_bytes()).hexdigest() != metadata.get("sha256"):
+                    errors.append(f"timestamp proof digest mismatch: {name}")
         except Exception:
             errors.append("package index is invalid JSON")
     for x in errors: print("FAIL:", x)
