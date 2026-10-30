@@ -1,10 +1,13 @@
 ## Automatic macOS research provenance
 
-For a background collector on macOS, see [the installation guide](docs/macos-automatic-provenance.md). From a local Git working tree, run:
+For a background collector on macOS, see [the installation guide](docs/macos-automatic-provenance.md). To install into an existing paper/code Git repository:
 
 ```bash
-python3 scripts/install_macos_provenance.py
+git clone -b macos-automatic-provenance https://github.com/prateekiiest/research-activity-logger.git ~/research-activity-logger
+bash ~/research-activity-logger/scripts/install_into_project.sh /absolute/path/to/your/research-repository
 ```
+
+Run the helper once per separate paper/code repository; run it only once if they share a Git working tree.
 
 The LaunchAgent starts at login, restarts after an unexpected exit, and records saved file states, local Git HEAD changes, and six-hour artifact manifests under the private, Git-ignored `.writing-provenance/` directory. It complements the existing Cursor hooks and VS Code extension. Enable Cursor hooks once with `python3 .cursor/hooks/record_provenance.py --enable`; enable the VS Code extension separately.
 
