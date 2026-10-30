@@ -25,6 +25,14 @@ Generate sanitized reviewer evidence (no raw logs or snapshots):
 python3 scripts/export_public_evidence.py
 ```
 
+Generate a readable, privacy-preserving research-process and AI-use evidence report:
+
+```bash
+python3 scripts/analyze_research_evidence.py
+```
+
+This verifies available provenance chains and snapshot hashes, summarizes recorded activity, and reports explicit Cursor hook events without publishing raw logs or document contents. For an optional independent AI interpretation of aggregate metadata only, set OPENAI_API_KEY and run `python3 scripts/analyze_research_evidence.py --ai-review`. See [the evidence report guide](docs/research-evidence-report.md). Missing events are never treated as proof of non-use.
+
 Keep raw logs and snapshots private. A local collector is not tamper-proof against the Mac owner and does not prove authorship, complete research activity, or absence of AI use. See the installation guide for coverage and limitations.
 
 ---
