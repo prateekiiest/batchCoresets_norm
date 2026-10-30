@@ -1,3 +1,34 @@
+## Automatic macOS research provenance
+
+For a background collector on macOS, see [the installation guide](docs/macos-automatic-provenance.md). To install into an existing paper/code Git repository:
+
+```bash
+git clone -b macos-automatic-provenance https://github.com/prateekiiest/research-activity-logger.git ~/research-activity-logger
+bash ~/research-activity-logger/scripts/install_into_project.sh /absolute/path/to/your/research-repository
+```
+
+Run the helper once per separate paper/code repository; run it only once if they share a Git working tree.
+
+The LaunchAgent starts at login, restarts after an unexpected exit, and records saved file states, local Git HEAD changes, and six-hour artifact manifests under the private, Git-ignored `.writing-provenance/` directory. It complements the existing Cursor hooks and VS Code extension. Enable Cursor hooks once with `python3 .cursor/hooks/record_provenance.py --enable`; enable the VS Code extension separately.
+
+Overleaf Git synchronization is captured only after changes are synchronized into the monitored local Git working tree. The collector does not automatically push/pull or store Overleaf credentials.
+
+Verify local event-chain and snapshot integrity:
+
+```bash
+python3 scripts/verify_macos_provenance.py --snapshots
+```
+
+Generate sanitized reviewer evidence (no raw logs or snapshots):
+
+```bash
+python3 scripts/export_public_evidence.py
+```
+
+Keep raw logs and snapshots private. A local collector is not tamper-proof against the Mac owner and does not prove authorship, complete research activity, or absence of AI use. See the installation guide for coverage and limitations.
+
+---
+
 # Research Activity Logging and AI-Content Triage
 
 Utilities for maintaining a contemporaneous record of research-draft changes and running lightweight, non-blocking AI-content triage checks in GitHub Actions.
@@ -106,23 +137,12 @@ python3 scripts/anchor_provenance.py
 
 This validates the event chains first, then submits only a manifest of log hashes (not prompts, responses, or edit contents) to public timestamp calendars. Keep the generated `checkpoints/provenance-anchor-*.json` and matching `.ots` proof. A proof may initially be pending; later run `ots upgrade checkpoints/ACTUAL-MANIFEST.json.ots` and verify it with `ots verify checkpoints/ACTUAL-MANIFEST.json.ots`. Copy both files to storage outside this computer (for example, a separate private cloud account or removable drive). The external timestamp supports that the hashed manifest existed no later than the time anchored by the calendar; it does not prove authorship or that the original log was complete. Do not publish the log files themselves unless you intend to disclose their contents.
 
-1. Start the logger before the research session.
-2. Update `IDEA_LOG.md`, `DAILY_LOG.md`, and `DECISIONS.md` where relevant.
-3. Commit meaningful changes with descriptive messages and push them to the appropriate remote repository.
-4. Generate a checkpoint:
-
-   ```bash
-   python3 scripts/checkpoint.py --label "experiment-milestone"
-   ```
-
-5. Stamp the actual checkpoint JSON file produced by the script:
-
-   ```bash
-   ots stamp checkpoints/ACTUAL-CHECKPOINT-FILENAME.json
-   ```
-
-   Replace the example filename with the generated filename. Keep both the JSON checkpoint and its `.ots` proof. A pending OpenTimestamps proof is not yet a completed independent timestamp.
-6. When verifying a historical file hash, check out the relevant recorded Git commit first. Retain copies of important records and proofs outside the working directory.
+1. Install the macOS LaunchAgent once in each local research Git working tree (see [the automatic macOS guide](docs/macos-automatic-provenance.md)).
+2. Work normally in Cursor/VS Code and commit code/manuscript changes as you usually do. No daily diary or per-edit manual annotation is required by the automatic collector.
+3. The background service polls saved files, observes local Git HEAD changes, and writes private manifests every six hours.
+4. Optionally install OpenTimestamps with `python3 -m pip install --user opentimestamps-client`; when `ots` is available, the collector automatically requests timestamps for each generated manifest. Pending proofs still need later upgrade/verification.
+5. Generate a sanitized reviewer package with `python3 scripts/export_public_evidence.py`. Inspect it before publishing; never publish `.writing-provenance/` or raw snapshots.
+6. Keep selected manifests and their `.ots` proofs outside the working Mac/account.
 
 | Evidence | What it can support |
 |---|---|
@@ -159,7 +179,7 @@ Coderbuds checks explicit attribution rules against available commit messages/au
 1. Sign in to Hugging Face and visit the [EditLens model page](https://huggingface.co/pangram/editlens_roberta-large).
 2. Review the access conditions and license, then request/accept gated access if the terms are suitable for your use.
 3. Create a read token in [Hugging Face token settings](https://huggingface.co/settings/tokens).
-4. In this repository, open **Settings → Secrets and variables → Actions → New repository secret** (or visit [Actions secrets](https://github.com/prateekiiest/batchCoresets_norm/settings/secrets/actions)).
+4. In this repository, open **Settings → Secrets and variables → Actions → New repository secret** (or visit [Actions secrets](https://github.com/prateekiiest/research-activity-logger/settings/secrets/actions)).
 5. Set the secret name to `HF_TOKEN` and paste the token value into GitHub. **Never commit the token or paste it into an issue, log, or chat.**
 
 Without a token, EditLens is skipped and the other checks can continue. A qualifying text sample and an accepted model/token are separate requirements: a run may skip EditLens because there is no qualifying added prose, even when a secret exists.
@@ -173,7 +193,7 @@ Without a token, EditLens is skipped and the other checks can continue. A qualif
 - The workflow is non-blocking: detector findings alone do not fail a build, and reports are not committed back to the repository.
 - It does not call paid detection APIs.
 
-The Lukkinen integration is experimental because its model card describes a custom mean-pooling architecture; the workflow records load/inference errors rather than treating failures as human-written results. Style statistics are descriptive only. See the [detailed detector guide](docs/ai-detector-suite.md) and the [GitHub Actions runs](https://github.com/prateekiiest/batchCoresets_norm/actions).
+The Lukkinen integration is experimental because its model card describes a custom mean-pooling architecture; the workflow records load/inference errors rather than treating failures as human-written results. Style statistics are descriptive only. See the [detailed detector guide](docs/ai-detector-suite.md) and the [GitHub Actions runs](https://github.com/prateekiiest/research-activity-logger/actions).
 
 ## Privacy, limitations, and licensing
 

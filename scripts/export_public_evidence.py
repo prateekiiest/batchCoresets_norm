@@ -1,0 +1,36 @@
+#!/usr/bin/env python3
+"""Create a sanitized reviewer manifest; never copy private event logs or snapshots."""
+import argparse,hashlib,json,subprocess
+from collections import Counter
+from datetime import datetime,timezone
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[1];STORE=ROOT/".writing-provenance"
+def h(p):
+    x=hashlib.sha256()
+    with p.open("rb") as f:
+        for b in iter(lambda:f.read(1024*1024),b""):x.update(b)
+    return x.hexdigest()
+def main():
+    ap=argparse.ArgumentParser();ap.add_argument("--output",default="public-evidence/research-provenance.json");ap.add_argument("--include-paths",action="store_true");a=ap.parse_args()
+    check=subprocess.run(["python3",str(ROOT/"scripts"/"verify_macos_provenance.py"),"--snapshots"],cwd=ROOT)
+    if check.returncode: raise SystemExit("Private macOS provenance verification failed; export refused.")
+    events=STORE/"macos-events.jsonl";counts=Counter();first=last=None
+    if events.exists():
+        for line in events.read_text().splitlines():
+            e=json.loads(line);counts[e.get("event_type","unknown")]+=1;t=e.get("observed_at_utc")
+            if t:first=min(first,t) if first else t;last=max(last,t) if last else t
+    r=subprocess.run(["git","rev-parse","HEAD"],cwd=ROOT,capture_output=True,text=True);commit=r.stdout.strip() if r.returncode==0 else None
+    artifacts={}
+    r=subprocess.run(["git","ls-files","-z"],cwd=ROOT,capture_output=True)
+    if r.returncode==0:
+        for n in r.stdout.decode().split("\0"):
+            if not n:continue
+            p=ROOT/n
+            if p.is_file() and not p.is_symlink() and p.stat().st_size<=25*1024*1024:
+                key=n if a.include_paths else p.suffix.lower() or "[no-extension]"
+                item={"sha256":h(p),"bytes":p.stat().st_size}
+                if a.include_paths:artifacts[key]=item
+                else:artifacts.setdefault(key,[]).append(item)
+    result={"schema_version":1,"generated_at_utc":datetime.now(timezone.utc).isoformat(),"repository_commit":commit,"observed_period":{"first_event_utc":first,"last_event_utc":last},"event_counts":dict(sorted(counts.items())),"tracked_artifacts":artifacts,"private_log_sha256":h(events) if events.exists() else None,"privacy":"No raw event records, prompts, document contents, local absolute paths, usernames, or browser history are included.","coverage_limitations":["Filesystem polling observes saved states, not every keystroke, unsaved buffer, thought, or exact edit time.","Git commits and hashes do not prove authorship or absence of AI assistance.","Overleaf edits are observed only after synchronization into this local Git working tree.","No claim is made about other devices, accounts, or unmonitored channels."]}
+    out=ROOT/a.output;out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(result,indent=2,sort_keys=True)+"\n");print("Wrote",out.relative_to(ROOT));print("Inspect before publishing.")
+if __name__=="__main__":main()

@@ -1,0 +1,53 @@
+name: macOS provenance checks
+
+on:
+  push:
+    paths:
+      - "scripts/macos_provenance.py"
+      - "scripts/install_macos_provenance.py"
+      - "scripts/export_public_evidence.py"
+      - "scripts/verify_macos_provenance.py"
+      - "scripts/install_into_project.sh"
+      - "scripts/install_into_project.sh"
+      - "vscode-provenance/**"
+      - ".github/workflows/macos-provenance-checks.yml"
+  pull_request:
+    paths:
+      - "scripts/macos_provenance.py"
+      - "scripts/install_macos_provenance.py"
+      - "scripts/export_public_evidence.py"
+      - "scripts/verify_macos_provenance.py"
+      - "scripts/install_into_project.sh"
+      - "vscode-provenance/**"
+      - ".github/workflows/macos-provenance-checks.yml"
+  workflow_dispatch:
+
+jobs:
+  static-checks:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Compile Python scripts
+        run: |
+          python -m py_compile scripts/macos_provenance.py
+          python -m py_compile scripts/install_macos_provenance.py
+          python -m py_compile scripts/export_public_evidence.py
+          python -m py_compile scripts/verify_macos_provenance.py
+      - name: Check command-line help
+        run: |
+          python scripts/macos_provenance.py --help
+          python scripts/install_macos_provenance.py --help
+          python scripts/export_public_evidence.py --help
+          python scripts/verify_macos_provenance.py --help
+      - name: Check installation helper syntax
+        run: bash -n scripts/install_into_project.sh
+      - name: Check VS Code extension syntax and manifest
+        run: |
+          node --check vscode-provenance/extension.js
+          python -c "import json; json.load(open('vscode-provenance/package.json'))"
