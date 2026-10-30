@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Create a sanitized reviewer manifest; never copy private event logs or snapshots."""
-import argparse,hashlib,json,subprocess
+import argparse,hashlib,json,subprocess,shutil
 from collections import Counter
 from datetime import datetime,timezone
 from pathlib import Path
@@ -32,5 +32,18 @@ def main():
                 if a.include_paths:artifacts[key]=item
                 else:artifacts.setdefault(key,[]).append(item)
     result={"schema_version":1,"generated_at_utc":datetime.now(timezone.utc).isoformat(),"repository_commit":commit,"observed_period":{"first_event_utc":first,"last_event_utc":last},"event_counts":dict(sorted(counts.items())),"tracked_artifacts":artifacts,"private_log_sha256":h(events) if events.exists() else None,"privacy":"No raw event records, prompts, document contents, local absolute paths, usernames, or browser history are included.","coverage_limitations":["Filesystem polling observes saved states, not every keystroke, unsaved buffer, thought, or exact edit time.","Git commits and hashes do not prove authorship or absence of AI assistance.","Overleaf edits are observed only after synchronization into this local Git working tree.","No claim is made about other devices, accounts, or unmonitored channels."]}
-    out=ROOT/a.output;out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(result,indent=2,sort_keys=True)+"\n");print("Wrote",out.relative_to(ROOT));print("Inspect before publishing.")
+    out=ROOT/a.output;out.parent.mkdir(parents=True,exist_ok=True);out.write_text(json.dumps(result,indent=2,sort_keys=True)+"\\n")
+    package=out.parent/"reviewer-package"; md=package/"manifests"; md.mkdir(parents=True,exist_ok=True)
+    for stale in md.glob("manifest-*"): stale.unlink()
+    manifest_files=sorted((STORE/"manifests").glob("manifest-*.json")) if (STORE/"manifests").exists() else []
+    included=[]; proofs=[]
+    for source in manifest_files:
+        shutil.copyfile(source,md/source.name); included.append(source.name)
+        proof=source.with_suffix(source.suffix+".ots")
+        if proof.is_file():
+            shutil.copyfile(proof,md/proof.name); proofs.append(proof.name)
+    index={"package_schema_version":1,"generated_at_utc":datetime.now(timezone.utc).isoformat(),"manifest_files":included,"timestamp_proof_files":proofs,"privacy":"Only path-redacted manifests and matching OpenTimestamps proof files are included; raw logs and snapshots are excluded."}
+    (package/"package-index.json").write_text(json.dumps(index,indent=2,sort_keys=True)+"\\n")
+    (package/"README.md").write_text("# Sanitized reviewer package\\n\\nRun python3 scripts/verify_reviewer_package.py public-evidence/reviewer-package for offline manifest integrity checks. Add --verify-timestamps to invoke OpenTimestamps verification when the ots client is installed. See docs/reviewer-guide.md for interpretation and limitations. This package excludes raw logs, snapshots, prompts, responses, document contents, usernames, and paths.\\n")
+    print("Wrote",out.relative_to(ROOT));print("Wrote",package.relative_to(ROOT));print("Inspect before publishing.")
 if __name__=="__main__":main()
