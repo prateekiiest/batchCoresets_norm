@@ -18,6 +18,15 @@ touch "$TARGET/.gitignore"
 if ! grep -qxF '.writing-provenance/' "$TARGET/.gitignore"; then
   printf '\n# Private local research provenance (never commit raw logs or snapshots)\n.writing-provenance/\n' >> "$TARGET/.gitignore"
 fi
+TOOL_ROOT="$(cd "$SOURCE/.." && pwd)"
+if [[ ! -e "$TARGET/.cursor/hooks.json" ]]; then
+  mkdir -p "$TARGET/.cursor/hooks"
+  cp "$TOOL_ROOT/.cursor/hooks.json" "$TARGET/.cursor/hooks.json"
+  cp "$TOOL_ROOT/.cursor/hooks/record_provenance.py" "$TARGET/.cursor/hooks/record_provenance.py"
+  python3 "$TARGET/.cursor/hooks/record_provenance.py" --enable
+else
+  echo "Existing .cursor/hooks.json found; not overwriting it. Merge the research-provenance hook entries manually."
+fi
 python3 "$TARGET/scripts/install_macos_provenance.py" --root "$TARGET"
 echo "Installed collector for: $TARGET"
 echo "The scripts and .gitignore change are in the target working tree; review and commit them."
