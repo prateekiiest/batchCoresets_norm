@@ -28,6 +28,7 @@ class Collector:
             except OSError:pass
         self.state=json.loads(self.statefile.read_text()) if self.statefile.exists() else {"files":{},"git_head":None}
         self.interval=max(2,interval); self.manifest_interval=max(1,hours)*3600; self.last_manifest=0
+        self.started_monotonic=time.monotonic(); self.last_heartbeat=0; self.scan_count=0
 
     def append(self,fields):
         prev=ZERO
@@ -83,7 +84,7 @@ class Collector:
 
     def manifest(self):
         logs={}
-        for name,p in (("macos",self.events),("cursor",self.store/"cursor-events.jsonl"),("vscode",self.store/"vscode-events.jsonl"),("legacy",self.store/"events.jsonl")):
+        for name,p in (("macos",self.events),("cursor",self.store/"cursor-events.jsonl"),("vscode",self.store/"vscode-events.jsonl"),("legacy",self.store/"events.jsonl"),("launchd_stdout",self.store/"launchd"/"stdout.log"),("launchd_stderr",self.store/"launchd"/"stderr.log"),("cold_turkey_statistics_export",self.store/"cold-turkey-statistics-export.json")):
             if p.is_file():logs[name]={"sha256":filehash(p),"bytes":p.stat().st_size}
         grouped={}
         try:
@@ -119,11 +120,21 @@ class Collector:
                 self.append({"event_type":"external_timestamp_error","evidence_class":"timestamp_client_error","manifest_sha256":filehash(out),"error_type":type(exc).__name__,"interpretation":"Timestamp request failed; manifest remains local."})
 
     def run(self):
+        self.append({"event_type":"collector_started","evidence_class":"launchagent_observed","collector_version":"research-activity-logger/2","interpretation":"Collector process started; this does not independently prove LaunchAgent configuration or continuous operation."})
         print(f"Research provenance running for {self.root}",flush=True)
         while True:
-            self.scan()
-            if time.monotonic()-self.last_manifest>=self.manifest_interval:
-                self.manifest(); self.last_manifest=time.monotonic()
+            try:
+                self.scan()
+                self.scan_count+=1
+                elapsed=time.monotonic()
+                if elapsed-self.last_heartbeat>=60:
+                    self.append({"event_type":"collector_heartbeat","evidence_class":"collector_self_report","scan_count":self.scan_count,"uptime_seconds":int(elapsed-self.started_monotonic),"interpretation":"Collector self-reported a heartbeat after a scan; missing heartbeats indicate an observation gap, not its cause."})
+                    self.last_heartbeat=elapsed
+                if elapsed-self.last_manifest>=self.manifest_interval:
+                    self.manifest(); self.last_manifest=time.monotonic()
+            except Exception as exc:
+                self.append({"event_type":"collector_error","evidence_class":"collector_self_report","error_type":type(exc).__name__,"interpretation":"Collector caught an exception; details are omitted to avoid recording potentially sensitive paths or content."})
+                time.sleep(max(self.interval,10))
             time.sleep(self.interval)
 
 def main():
