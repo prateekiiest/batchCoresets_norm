@@ -198,6 +198,10 @@ python3 scripts/diagnose_cold_turkey.py
 
 The diagnostic prints only candidate-file metadata and SQLite table/column names. It never reads or prints activity rows, URLs, website/application names, or window titles, and it does not modify or upload anything. See [the diagnostic guide](docs/cold-turkey-diagnostic.md). Automatic 15-minute statistics extraction will be implemented only after the actual local schema is identified and validated.
 
+## Automatic Cold Turkey daily aggregates
+
+The macOS collector can read Cold Turkey's local SQLite statistics databases in read-only mode and refresh sanitized daily aggregates every 15 minutes. It exports daily summed seconds and blocked-row counts only; domain, application/file, title, and user identifiers are not selected. The reviewer package can include the sanitized aggregate JSON. See [the reviewer guide](docs/reviewer-guide.md).
+
 ## LaunchAgent health and Cold Turkey (optional)
 
 The macOS collector records its own startup, periodic (approximately 60-second) heartbeat after a successful scan, and caught errors. These records help identify collection gaps; they do not independently monitor `launchd` or prove uninterrupted operation. The periodic sanitized manifest can also include hashes and sizes of LaunchAgent stdout/stderr logs.
